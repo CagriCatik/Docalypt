@@ -1,5 +1,7 @@
 # Power Traces and Signal Routing
 
+
+
 missile and there's other involved pads on the left side as well and those routes have to go through to the SD card module clock Mossy cssd and this pad here as well for miso and there's also the flash memory here I'm going to move this module a little bit higher select it first in the filter then unlock it so that I can move it and I'm actually going to move that a little higher and the module with its components a little lower and place that mounting hole there my change position again later but for now that's okay lock
 
 it again in place and I'm going to start drawing from here let's say furthest away and there also pad 18 that I need to route I'm also going to place the test points to the Final locations I'm going to do that once I know where the SPI tracks go I'm going to start with miso and start the track on the top layer like this I'm going to Route it under the SD card you can see that that is going first to R16 but I want to Route it to the flash interface right there to begin with now this is a good place for tppp2 which is misso so let's grab

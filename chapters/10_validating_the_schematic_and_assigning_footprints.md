@@ -1,5 +1,7 @@
 # Validating the Schematic and Assigning Footprints
 
+
+
 one right here assign Footprints so let's have a look at what we have so okay just say okay to these Legacy entries notifications so some components already have associations you can see here that F1 has an association it's the fuse the connector J1 also has an association and so on but many other components like these capacitors for example don't have an association so let's go ahead and add those now for Passive components like the capacitors and there's a bunch of resistors down here as well I am standardizing those
 
 components for the 0805 SMD versions of these resistors there's many different sizes of course and I can go for through hole components and I can go for tiny SMD components as well for this particular design where I am trying to balance the size and the cost I'm going to go for a more general purpose size such as the 0805 I could go much smaller than that but that would increase the assembly and Manufacturing cost I'm going to start with the first one and actually what you can do in ki it you can even select all

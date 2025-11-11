@@ -1,5 +1,7 @@
 # Designing the ESP32 Circuitry
 
+
+
 thing I don't have a value for R6 so let's do that now so R6 should be 20K I'm pretty confident that this is correct now I haven't forgotten anything so we can continue now with the second sheet let's continue with the second sheet which will contain the various circuitry relating to the es32 and things such as the USB module flash memory in the SD card module I'll put all those in the second sheet so you can get to the second sheet either by clicking here in the schematic herc just a second sheet you can reveal that
 
 window by clicking on this button here in the left toolbar HC Navigator or you can double click on the hierarchy symbol in the first sheet just double click and all get you there and another thing that you can do that I always like to do is to go into the symbols property and just change the fill color so that it's a little bit easier to see I'm just going to make it something like this with a bit of opacity so kind of look a little bit like this a bit more interesting and and striking later on you'll see that

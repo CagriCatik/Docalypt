@@ -1,5 +1,7 @@
 # Researching and Sourcing Components
 
+
+
 manufactured so I should have it maybe in one or two weeks we'll see how that goes and I'll report on that later in this video with all that in mind you already know that the PCB that uh I'm designing in this video is built around the esp32 and I selected this MCU due to its high processing power and integrated wireless communication it's got a dual core architecture and this ensures lots of available data processing power making it suitable for handling multiple sensor inputs and Performing realtime data analysis and I I also want to use
 
 this board once it's ready and manufactured to play around with esp32 artificial intelligence capabilities of course being familiar with his MCU is an added bonus this is hardware that I am familiar with I also wanted this board to be a fully fidget iot board Internet of Things board which would be a good PCB design example for this video so I've added a bunch of sensors as you already know there is the BME 280 there's a microphone sensor and there is a light sensor as well and these sensors are supported by their own dedicated

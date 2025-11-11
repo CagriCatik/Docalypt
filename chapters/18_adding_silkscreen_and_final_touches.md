@@ -1,5 +1,7 @@
 # Adding Silkscreen and Final Touches
 
+
+
 some room up here by removing the mounting hole so again pick up the text tool and the first one is going to be charging power okay and it's always a challenge to make this fit so let's make this 90° so that I can mount it in like this and it's done and I'll continue with the rest for example I'm going to go up here and add some text for the roll of these pens I use the same geometry for the text so this first one is going to be G and D I'm going I'm going to continue along the same way but to save us all bit of
 
 time and especially you I'm not going to record this whole process and I'm going to come back in your time in just a few seconds and my time is going to be probably around 30 to 40 minutes when I would have completed the sil screen and that's it with the silk screen let's have a look I'm going to disable some of these layers take a better look at the sil screen layer so I've got all the borders between the different top circuits got a couple of logos as well there's always room for the tech Expos logo and the kyat in the back silk

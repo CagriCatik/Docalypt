@@ -1,5 +1,7 @@
 # Setting Up the PCB Layout Editor
 
+
+
 blank layout editor before I draw the footprints from the schematic editor to layout I want to do a little bit of setup first thing to do is to go into the board editor layers and have a look at this as you can see right now by default the project is set up to have two layers but because of the complexity in the size and the number of components on this board it's not going to be impossible but it's going to be very difficult and tedious to make all that fit in a TW layer PCB so what we'll do is make that a four layer PCB via the
 
 physical stack up you can see copy layers and now four and then let's go back to the board editor layers and have a look at the settings here in the board layout layers here I can tell kick out the roles of each one of those layers you can see that for most of them the roles are fixed but for some of them the copper layers in particular I can choose a particular role now my plan as you know is to have a four layer PCB where in the first layer I'll be placing the actual components so components will be only on the top copper layer and on the

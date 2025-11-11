@@ -1,5 +1,7 @@
 # 3D Model Configuration and Visualization
 
+
+
 for a PCB only without any components assembled on it and the other one is to go for the full assembly if you go for the quote all you've got to do is to upload the Gerber files if you go for a a assembly though things are a little bit more involved because you've got to upload the G files plus there's a bunch of files for the assembly part of it I'm going to go through the PB assembly quote process very quickly with you now first thing to do of course is to start with the Gerber files and since I've made a few changes to the PCB since last
 
 time I exported my gers so I'm going to go and do that again so click on the plot file everything is already selected just going to use the same output folder and the new files here that I'm about to generate will overwrite the old files and that's okay so click on plot so yep refill the zones that's done with the layers and then the drill files same thing generate and that's done then let's go to the project directory and uh here is the Gerber files and I'm going to create a zip file from the G because that's how next PCB and actually in this

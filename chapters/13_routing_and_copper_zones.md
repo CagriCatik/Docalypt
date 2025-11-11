@@ -1,5 +1,7 @@
 # Routing and Copper Zones
 
+
+
 various voltages that we'll be using including 3.3 volts 5 volts and there's a few other net for example the three bus Nets that I create copper zones for after that I'll focus on the differential pairs then I'll go for clock and highs speeded signals so that means the SBI interface and the I squid C interface and anything that is connected to those interfaces and then I'm going to work on power traces so anything that conveys power that is not already connected to a copper Zone and finally the various other signals that
 
 are left I finish all that work I will be doing an optimization one thing that people often do at this point is to use the auto router to take care of the routing in literally just a few minutes but for a board like this I find that the auto router produces of course Resorts that validate through the error Checker but they're not optimal and that can lead to problems with signal conditioning or than you having to spend time to fix what the auto router has done instead of doing the work from the beginning on your own and producing a

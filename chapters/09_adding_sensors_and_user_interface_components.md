@@ -1,5 +1,7 @@
 # Adding Sensors and User Interface Components
 
+
+
 3 volt symbol which I have used recently I'm just going to place that there move these down a bit so csb will go to 3.3 volts just going do move that here so that csb will connect straight to that level and then I'll have the two resistors to also connect [Music] there and the other side of the resistors one will go to SC K I'm extending a little bit because I'm going to connect the net to that extended wire in a moment and then this SDI going to extend for the same reason done and then I will have two hierarchical
 
 labels one is going to be SC right there and the other one is going to be SDA just going to improve the layout a bit move that up a bit using the G K to move and see if I can get those two wires up a little more yeah of course fix all this there's no connection there as much as possible I try to prevent having too many angles that can move in a little more like that now sdo will go to ground so what I'm implementing here is an address so with sdo being grounded the address for this device is 076 heximal on the other side I'll have

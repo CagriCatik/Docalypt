@@ -1,5 +1,7 @@
 # Component Placement and Board Outline Refinement
 
+
+
 25 mm because it's very difficult to draw straight lines on very small grid I'm using my side to side cursors here to help me with the drawing actually before I start drawing I just want to remind you what I'm trying to do so I'm going to make sure that there is no PCB below the antenna and that there is a minimum of 50 15 mm on the left side of the antenna start drawing here straight line up to this point then I'm going to click right here and to make sure that I've got 15 mm clearance I'm going to hit this space
 
 bar on my keyboard to zero the numbers down the bottom you can see DX and Dy and from here I'm going to go for another 15 mm you can can see that the cursor also tells me how far from the previous click I've gone so that's now 15 mm I'll give it a little more let's make it 16 that's it and then I'm going to go up and then continue towards the left I'm going to go up to here because I've got a lot of empty space in this board so I'll be able to make the board a little smaller I'm not going to commit to anything though but I'm just going to

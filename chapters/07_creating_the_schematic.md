@@ -1,5 +1,7 @@
 # Creating the Schematic
 
+
+
 that's what I'll do so I select the first item in the list hold the shift button on my keyboard and scroll down and while I'm holding the shift key click on the last item to highlight everything and then click on open and you can see that now all of these symbols and the symbol libraries have been selected and they are under the Project Specific libraries and click okay and now I'm ready to get started with the schematic here's the blank schematic editor and the plan here is that I'm going to have a total of four
 
 pages in the first page I'll have the USB and power related components then in the second page I'll have the esp32 the module plus the usbt converter and a couple of LEDs then I'm going to have another page for the sensors and finally uh another page for the user interface so I'll be creating these Pages as I go and then providing Connections in between the pages let's start dropping some components start with the uh sheet page settings I just want to uh add my date here I give it a the title so this going to be ESP 32 sensor board you can

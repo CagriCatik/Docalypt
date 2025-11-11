@@ -1,5 +1,7 @@
 # Operational Requirements and Component Selection
 
+
+
 work together so one of the key decisions involved is signal conditioning to ensure clean and stable signals AED things such as decoupling capacitors as you can see right here this is one example at the input a power input of the esp32 we place those capacitors near the power pins of each integrated circuit and these capacitors help to filter out noise and stabilized power supply additionally there are things such as pull up and pull down is this let me just find an example I'm just going to go to let's go to sensors where I know that
 
 I had to use one of those yep so here's the um sensor for the BME 280 integrated circuit and there's a couple of pullup resistors for the and the SDA lines the I quid C interface so these ensure reliable communication and startup Behavior as well I've also included multiple capacitor sizes of course uh again the Capac sizes here's one example here's another example this is for the SD card module there's a variation of values and we'll find the actual values in data sheets for the various devices but these capacitors both ceramic and

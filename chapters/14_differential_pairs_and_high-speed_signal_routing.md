@@ -1,5 +1,7 @@
 # Differential Pairs and High-Speed Signal Routing
 
+
+
 one is down here you can see I've got USB DP and USB DN those pads up here need to be connected to this and this pad right there and then a little further up I have USB D plus and USB D minus right here two pads and the other two pads down here let's get started with that I'm going to select the differential pair tool from here the problem that I'm having here is I'm clicking revealing the menu I'm trying to select differential pairs but it won't let me so I'm going to try by using the keyboard shortcut which is six
 
 and start from the bottom so again with a six to start the pair now it's going to probably work maybe not again so the problem here maybe it's positioning but also you can see that there is a clearance the pads up there are very close to each other so the clearance may be a problem the first thing I'll do though is to move u4 a little bit to the left so that it's properly aligned I'm going to unlock it and just move it a little bit to the LIF then try again with a differential pair now this is still not helping very

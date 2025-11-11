@@ -1,5 +1,7 @@
 # Component Placement and Design Challenges
 
+
+
 an SD card this is remember an iot development board so you may want to use an SD card to do things such as data logging then I've got a flash memory also that can be used to store data from the various environmental measurements up here I've got the BME 280 environment sensor you can use the sensor to capture temperature humidity and atmospheric pressure right here is an ambient light sensor so you can capture information about the light intensity up here there's a microphone for capturing sound intensity right here I've got a USBC
 
 connector we'll be using this USBC connector for power and for data there's a couple of buttons on the right side enable and boot just to operate with the esp32 I've got integrated circuits here for the serial Communications so this chip here helps to manage the USB and the serial Communications of the board in this block here I've Got The Power regulator circuitry down here I've got the battery management circuitry this a battery connector for a lipo battery plus its integrated circuit for managing charging of the battery and then finally
