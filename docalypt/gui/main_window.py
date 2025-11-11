@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
 
 from ..documentation import (
     DocumentGenerationRequest,
+    DocumentGenerationResult,
     OllamaSettings,
     collect_chapter_files,
 )
@@ -59,7 +60,9 @@ class MainWindow(QMainWindow):
         self._input_path: Optional[Path] = None
         self._output_dir: Path = Path.cwd() / "chapters"
         self._split_thread: Optional[QThread] = None
+        self._split_worker: Optional[SplitWorker] = None
         self._doc_thread: Optional[QThread] = None
+        self._doc_worker: Optional[DocumentationWorker] = None
         self._model_thread: Optional[QThread] = None
         self._model_worker: Optional[ModelListWorker] = None
         self._available_models: list[str] = []
@@ -244,36 +247,46 @@ class MainWindow(QMainWindow):
         self.progress.setValue(0)
         self.progress.show()
 
-        splitter = TranscriptSplitter(self._input_path, self._output_dir)
-        self._split_thread = QThread()
-        worker = SplitWorker(splitter)
-        worker.moveToThread(self._split_thread)
-        self._split_thread.started.connect(worker.run)
-        worker.progress.connect(self.progress.setValue)
-        worker.finished.connect(lambda count: self._on_split_finished(count, worker))
-        worker.error.connect(lambda message: self._on_split_error(message, worker))
-        self._split_thread.start()
+        if self._split_thread and self._split_thread.isRunning():
+            self.logger.warning("A split operation is already running")
+            return
 
-    def _on_split_finished(self, count: int, worker: SplitWorker) -> None:
+        splitter = TranscriptSplitter(self._input_path, self._output_dir)
+        thread = QThread(self)
+        worker = SplitWorker(splitter)
+        worker.moveToThread(thread)
+
+        thread.started.connect(worker.run)
+        worker.progress.connect(self.progress.setValue)
+        worker.finished.connect(self._on_split_finished)
+        worker.error.connect(self._on_split_error)
+        worker.finished.connect(thread.quit)
+        worker.error.connect(thread.quit)
+        thread.finished.connect(self._cleanup_split_thread)
+
+        self._split_thread = thread
+        self._split_worker = worker
+        thread.start()
+
+    def _on_split_finished(self, count: int) -> None:
         self.logger.info("Split complete: %d chapters", count)
         self.progress.hide()
         self.split_btn.setEnabled(True)
         self._refresh_chapter_list()
-        if self._split_thread:
-            self._split_thread.quit()
-            self._split_thread.wait()
-            self._split_thread = None
-        worker.deleteLater()
 
-    def _on_split_error(self, message: str, worker: SplitWorker) -> None:
+    def _on_split_error(self, message: str) -> None:
         self.logger.error("Split failed: %s", message)
         self.progress.hide()
         self.split_btn.setEnabled(True)
+
+    def _cleanup_split_thread(self) -> None:
+        if self._split_worker:
+            self._split_worker.deleteLater()
+            self._split_worker = None
         if self._split_thread:
-            self._split_thread.quit()
-            self._split_thread.wait()
+            self._split_thread.deleteLater()
             self._split_thread = None
-        worker.deleteLater()
+        self._update_doc_controls()
 
     def _reveal_output(self) -> None:
         QDesktopServices.openUrl(self._output_dir.as_uri())
@@ -447,14 +460,24 @@ class MainWindow(QMainWindow):
         self.chapter_list.setEnabled(False)
         self.select_all_btn.setEnabled(False)
 
-        self._doc_thread = QThread()
+        if self._doc_thread and self._doc_thread.isRunning():
+            self.logger.warning("Documentation is already running")
+            return
+
+        thread = QThread(self)
         worker = DocumentationWorker(request)
-        worker.moveToThread(self._doc_thread)
-        self._doc_thread.started.connect(worker.run)
+        worker.moveToThread(thread)
+
+        thread.started.connect(worker.run)
         worker.chapter_done.connect(self._on_chapter_documented)
         worker.chapter_failed.connect(self._on_chapter_failed)
-        worker.finished.connect(lambda _: self._on_generation_finished(worker))
-        self._doc_thread.start()
+        worker.finished.connect(self._on_generation_finished)
+        worker.finished.connect(thread.quit)
+        thread.finished.connect(self._cleanup_doc_thread)
+
+        self._doc_thread = thread
+        self._doc_worker = worker
+        thread.start()
 
     def _on_chapter_documented(self, chapter_name: str, output: str) -> None:
         self.logger.info("Documentation created for %s → %s", chapter_name, output)
@@ -462,18 +485,26 @@ class MainWindow(QMainWindow):
     def _on_chapter_failed(self, chapter_name: str, error: str) -> None:
         self.logger.error("Failed to document %s: %s", chapter_name, error)
 
-    def _on_generation_finished(self, worker: DocumentationWorker) -> None:
-        self.logger.info("Documentation generation finished")
+    def _on_generation_finished(self, result: DocumentGenerationResult) -> None:
+        self.logger.info(
+            "Documentation generation finished (%d succeeded, %d failed)",
+            len(result.written),
+            len(result.failures),
+        )
         self.generate_docs_btn.setEnabled(True)
         self.chapter_list.setEnabled(True)
         self.select_all_btn.setEnabled(True)
-        if self._doc_thread:
-            self._doc_thread.quit()
-            self._doc_thread.wait()
-            self._doc_thread = None
-        worker.deleteLater()
         self._refresh_chapter_list()
         self.generation_finished.emit()
+
+    def _cleanup_doc_thread(self) -> None:
+        if self._doc_worker:
+            self._doc_worker.deleteLater()
+            self._doc_worker = None
+        if self._doc_thread:
+            self._doc_thread.deleteLater()
+            self._doc_thread = None
+        self._update_doc_controls()
 
     # Qt lifecycle -------------------------------------------------------
     def closeEvent(self, event) -> None:  # noqa: N802
