@@ -1,75 +1,98 @@
 # Docalypt
 
-A lightweight, flexible tool for splitting Markdown-formatted transcripts into timestamped chapter files. Supports both GUI (PySide6) and CLI interfaces, plugin hooks, custom markers, and optional HTML export.
+Docalypt is a desktop and command-line application that turns long-form Markdown
+transcripts into neatly organised chapter files and, optionally, generates
+chapter documentation with a local Ollama model.
 
 ---
 
-## Features
+## Highlights
 
-- **Split Markdown by timestamps**: Detect markers like `(HH:MM:SS)` or custom regex patterns.
-- **GUI & CLI**:
-  - **GUI**: Full-featured `main.py` with drag-&-drop, progress bar, log pane, and compact version `compact_gui.py`.
-  - **CLI**: `cli.py` built with [Click](https://click.palletsprojects.com/).
-- **Configurable**: Load defaults from `~/.config/markdown_splitter/config.toml`:
-  ```toml
-  marker_regex = "\((\d{1,2}:\d{2}(?::\d{2})?)\)"
-  output_dir   = "/home/user/chapters"
-  ```
-- **Plugin hooks**:
-  - **pre-split**: modify the body text before splitting.
-  - **post-split**: act on each generated file (e.g. watermark, log).
-- **HTML Export**: `--html` flag to produce a simple `index.html` aggregating all chapters.
-- **Type-checked**: Uses type hints and `pathlib` for clarity and safety.
+- **Unified architecture** – reusable core modules for configuration, splitting
+  and documentation across the CLI and both GUIs.
+- **Rich PySide6 interface** – drag & drop transcripts, monitor progress, and
+  launch Ollama-powered documentation generation without blocking the UI.
+- **Compact GUI** – a streamlined window for quick jobs with one-click
+  documentation.
+- **CLI parity** – the command-line interface retains all previous flags while
+  benefiting from the refactored splitting engine.
 
-## Installation (with Poetry)
+## Project layout
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/markdown-transcript-splitter.git
-   cd markdown-transcript-splitter
-   ```
-
-2. **Install dependencies** via Poetry:
-   ```bash
-   poetry install
-   ```
-
-3. **Activate the virtual environment**:
-   ```bash
-   poetry shell
-   ```
-
-> **Requirements**: Python 3.8+, Poetry, PySide6, toml, click
-
-## Configuration
-
-Create or edit `~/.config/markdown_splitter/config.toml` to override defaults:
-
-```toml
-marker_regex = "\[(\d{2}:\d{2}:\d{2})\]"
-output_dir   = "/path/to/output"
-html_template = null  # (future: supply custom HTML template)
+```text
+.
+├── docalypt/
+│   ├── config.py          # Load persisted configuration
+│   ├── documentation.py   # High-level documentation workflow helpers
+│   ├── gui/               # PySide6 user interfaces
+│   ├── ollama.py          # HTTP client and prompt builder
+│   └── splitting.py       # Transcript splitting engine
+├── cli.py                 # Click-based CLI entry point
+├── compact_gui.py         # Compact GUI launcher
+├── main.py                # Full GUI launcher
+└── docs/
+    └── ARCHITECTURE.md    # Short architectural notes
 ```
+
+### Architecture overview
+
+```mermaid
+graph TD
+    A[Transcript Markdown] --> B{TranscriptSplitter}
+    B -->|Writes| C[Chapter .md files]
+    B -->|Optional| D[index.html]
+    C -->|Selected| E[DocumentGenerationRequest]
+    E --> F[OllamaClient]
+    F -->|Markdown| G[Chapter docs]
+    G --> H[GUI log updates]
+```
+
+### GUI workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant M as MainWindow
+    participant S as SplitWorker
+    participant D as DocumentationWorker
+    participant O as OllamaClient
+
+    U->>M: Choose transcript & output
+    U->>M: Click "Split Transcript"
+    M->>S: Start background split
+    S-->>M: Progress + chapter list
+    U->>M: Enable Ollama & select chapters
+    U->>M: Click "Generate documentation"
+    M->>D: Start background generation
+    D->>O: Stream prompt & receive markdown
+    O-->>D: Markdown content
+    D-->>M: Success / failure per chapter
+    M-->>U: Log updates & refreshed list
+```
+
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourname/docalypt.git
+   cd docalypt
+   ```
+2. **Install dependencies** (example using pip)
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt  # or install PySide6, click, toml manually
+   ```
+
+> Docalypt targets Python 3.9+. PySide6 is required for the GUI; Click and toml
+> are required for the CLI.
 
 ## Usage
 
 ### CLI
 
 ```bash
-# Basic split:
-python cli.py transcript.md
-
-# Specify output directory:
-python cli.py transcript.md -o ./output
-
-# Custom split marker:
-python cli.py transcript.md -m '\[(\d{1,2}:\d{2})\]'
-
-# Also generate HTML index:
-python cli.py transcript.md --html
-
-# Verbose debug logging:
-python cli.py transcript.md -v
+python cli.py transcript.md --output-dir ./chapters --html
 ```
 
 ### Full GUI
@@ -78,36 +101,25 @@ python cli.py transcript.md -v
 python main.py
 ```
 
-- Drag & drop `.md` onto the window or use **📂 Open Markdown…**
-- Choose output folder, then **🚀 Split Transcript**
-
 ### Compact GUI
 
 ```bash
 python compact_gui.py
 ```
 
-- Browse for a file, then click **Split**
-- Minimal pop-up dialogs indicate success or errors
+## Ollama integration
 
-## Extending with Hooks
+1. Install and run [Ollama](https://ollama.com/).
+2. Download a local model, for example `ollama run llama3`.
+3. In the GUI, enable the **LLM / Ollama** section, enter the model name, tweak
+   parameters, select chapters, and click **Generate documentation**.
 
-You can pass your own functions to `TranscriptSplitter`:
+Each documentation file is saved alongside the chapter as `<chapter>.docs.md`.
 
-```python
-from splitter import TranscriptSplitter
+## Contributing
 
-def uppercase_body(body: str) -> str:
-    return body.upper()
+- Format code with `black` and `isort`.
+- Run `python -m compileall docalypt cli.py main.py compact_gui.py` before
+  submitting changes.
 
-def log_file(path):
-    print(f"Generated {path}")
-
-splitter = TranscriptSplitter(
-    input_path=Path('transcript.md'),
-    output_dir=Path('./chapters'),
-    pre_split_hooks=[uppercase_body],
-    post_split_hooks=[log_file]
-)
-splitter.split(export_html=True)
-```
+For further architectural notes, read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
