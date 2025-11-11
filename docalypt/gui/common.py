@@ -63,8 +63,8 @@ class DocumentationWorker(QObject):
 
     def run(self) -> None:
         result = generate_documentation(self.request)
-        for written in result.written:
-            self.chapter_done.emit(written.stem.replace(".docs", ""), str(written))
+        for chapter, destination in result.written:
+            self.chapter_done.emit(chapter.name, str(destination))
         for chapter, error in result.failures:
             self.chapter_failed.emit(chapter.name, error)
         self.finished.emit(result)

@@ -3,6 +3,7 @@
 from .config import AppConfig, load_config
 from .splitting import TranscriptSplitter
 from .documentation import (
+    DOCUMENTATION_SUBDIR,
     OllamaSettings,
     DocumentGenerationRequest,
     DocumentGenerationResult,
@@ -12,6 +13,7 @@ from .documentation import (
 
 __all__ = [
     "AppConfig",
+    "DOCUMENTATION_SUBDIR",
     "DocumentGenerationRequest",
     "DocumentGenerationResult",
     "OllamaSettings",

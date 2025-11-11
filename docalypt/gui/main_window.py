@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..documentation import (
+    DOCUMENTATION_SUBDIR,
     DocumentGenerationRequest,
     DocumentGenerationResult,
     OllamaSettings,
@@ -43,6 +44,7 @@ from ..splitting import TranscriptSplitter
 from .common import DocumentationWorker, ModelListWorker, QtLogHandler, SplitWorker
 
 DEFAULT_MODEL = "llama3"
+DOCS_SUBDIR = DOCUMENTATION_SUBDIR
 
 
 class MainWindow(QMainWindow):
@@ -148,6 +150,32 @@ class MainWindow(QMainWindow):
         self.max_tokens_spin.setRange(16, 8192)
         self.max_tokens_spin.setValue(800)
         form.addRow("Max tokens", self.max_tokens_spin)
+
+        self.presence_penalty_spin = QDoubleSpinBox()
+        self.presence_penalty_spin.setRange(-2.0, 2.0)
+        self.presence_penalty_spin.setDecimals(2)
+        self.presence_penalty_spin.setSingleStep(0.1)
+        self.presence_penalty_spin.setValue(0.0)
+        form.addRow("Presence penalty", self.presence_penalty_spin)
+
+        self.frequency_penalty_spin = QDoubleSpinBox()
+        self.frequency_penalty_spin.setRange(-2.0, 2.0)
+        self.frequency_penalty_spin.setDecimals(2)
+        self.frequency_penalty_spin.setSingleStep(0.1)
+        self.frequency_penalty_spin.setValue(0.0)
+        form.addRow("Frequency penalty", self.frequency_penalty_spin)
+
+        self.repeat_penalty_spin = QDoubleSpinBox()
+        self.repeat_penalty_spin.setRange(0.0, 2.0)
+        self.repeat_penalty_spin.setDecimals(2)
+        self.repeat_penalty_spin.setSingleStep(0.1)
+        self.repeat_penalty_spin.setValue(1.0)
+        form.addRow("Repeat penalty", self.repeat_penalty_spin)
+
+        self.top_k_spin = QSpinBox()
+        self.top_k_spin.setRange(1, 1000)
+        self.top_k_spin.setValue(40)
+        form.addRow("Top_k", self.top_k_spin)
 
         settings_layout.addLayout(form)
         settings_layout.addStretch(1)
@@ -404,6 +432,10 @@ class MainWindow(QMainWindow):
             temperature=float(self.temperature_spin.value()),
             top_p=float(self.top_p_spin.value()),
             max_tokens=int(self.max_tokens_spin.value()),
+            presence_penalty=float(self.presence_penalty_spin.value()),
+            frequency_penalty=float(self.frequency_penalty_spin.value()),
+            repeat_penalty=float(self.repeat_penalty_spin.value()),
+            top_k=int(self.top_k_spin.value()),
         )
 
     def _update_doc_controls(self) -> None:
@@ -417,6 +449,10 @@ class MainWindow(QMainWindow):
             self.temperature_spin,
             self.top_p_spin,
             self.max_tokens_spin,
+            self.presence_penalty_spin,
+            self.frequency_penalty_spin,
+            self.repeat_penalty_spin,
+            self.top_k_spin,
             self.chapter_list,
             self.select_all_btn,
             self.refresh_models_btn,
@@ -450,6 +486,7 @@ class MainWindow(QMainWindow):
             chapters=chapters,
             settings=settings,
             prompt_template=prompt_template,
+            destination_dirname=DOCS_SUBDIR,
         )
         self.logger.info(
             "Generating documentation with %s for %d chapters…",
@@ -491,6 +528,9 @@ class MainWindow(QMainWindow):
             len(result.written),
             len(result.failures),
         )
+        if result.written:
+            target_dir = self._output_dir / DOCS_SUBDIR
+            self.logger.info("Documentation stored in %s", target_dir)
         self.generate_docs_btn.setEnabled(True)
         self.chapter_list.setEnabled(True)
         self.select_all_btn.setEnabled(True)

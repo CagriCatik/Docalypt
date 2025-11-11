@@ -18,6 +18,10 @@ class OllamaSettings:
     temperature: float = 0.2
     max_tokens: int = 800
     top_p: float = 0.9
+    presence_penalty: float = 0.0
+    frequency_penalty: float = 0.0
+    repeat_penalty: float = 1.0
+    top_k: int = 40
     endpoint: str = DEFAULT_ENDPOINT
 
 
@@ -75,6 +79,10 @@ class OllamaClient:
                 "temperature": self.settings.temperature,
                 "top_p": self.settings.top_p,
                 "num_predict": self.settings.max_tokens,
+                "presence_penalty": self.settings.presence_penalty,
+                "frequency_penalty": self.settings.frequency_penalty,
+                "repeat_penalty": self.settings.repeat_penalty,
+                "top_k": self.settings.top_k,
             },
         }
         request = Request(
