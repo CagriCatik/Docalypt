@@ -1,0 +1,5 @@
+# Design Guidelines and Workflow Overview
+
+board and get it assembled through next BCB who as I said earlier is the PCB manufacturer and assembler that are partnered with for this project and again I want to thank them for sponsoring this video now the goal here is to show you the complete workflow in a way that's both educational and fun and by the end of this video you'll have a better understanding of how to design your own intermediate level pcbs using kick at 9 and then how to bring your designs to life with a manufacturer so grab your coffee or
+
+other beverage of choice fire up your copy of kiad and let's get started let's take a closer look at the I to develop a board with a better design I want to give you a sense of the high level design challenges and the decisions I've made along the way to ensure that this board meets its performance goals and is ready for manufacturing as you already know the board is powered by an esp32 c302 system on a chip right here and of course there's a bunch of other components around it such as sensors and power circuitry Etc all these have to
