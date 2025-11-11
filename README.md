@@ -1,50 +1,51 @@
 # Docalypt
 
-Docalypt is a desktop and command-line application that turns long-form Markdown
-transcripts into neatly organised chapter files and, optionally, generates
-chapter documentation with a local Ollama model.
+Docalypt turns long-form Markdown transcripts into timestamped chapter files and can
+produce supporting documentation for each chapter with a local Ollama model. The
+project ships with a PySide6 desktop application and a CLI that share a common
+splitting and documentation pipeline.
 
 ---
 
-## Highlights
+## Why Docalypt?
 
-- **Unified architecture** – reusable core modules for configuration, splitting
-  and documentation across the CLI and both GUIs.
-- **Rich PySide6 interface** – drag & drop transcripts, monitor progress, and
-  launch Ollama-powered documentation generation without blocking the UI.
-- **Compact GUI** – a streamlined window for quick jobs with one-click
-  documentation.
-- **CLI parity** – the command-line interface retains all previous flags while
-  benefiting from the refactored splitting engine.
+- **Reliable splitting** – the original chapter generation workflow remains
+  untouched and configurable through `config.toml`.
+- **Responsive desktop app** – drag & drop a transcript, monitor progress, and
+  trigger documentation jobs without freezing the UI.
+- **Integrated Ollama flow** – discover installed models, tune generation
+  parameters, and craft prompts from a dedicated GUI tab.
+- **Single codebase** – configuration, splitting, and documentation helpers are
+  shared between the GUI and the CLI for predictable behaviour.
 
-## Project layout
+## Repository layout
 
 ```text
 .
 ├── docalypt/
-│   ├── config.py          # Load persisted configuration
-│   ├── documentation.py   # High-level documentation workflow helpers
-│   ├── gui/               # PySide6 user interfaces
-│   ├── ollama.py          # HTTP client and prompt builder
-│   └── splitting.py       # Transcript splitting engine
-├── cli.py                 # Click-based CLI entry point
-├── compact_gui.py         # Compact GUI launcher
-├── main.py                # Full GUI launcher
+│   ├── config.py            # Configuration loading helpers
+│   ├── documentation.py     # Documentation workflow and prompt handling
+│   ├── gui/
+│   │   ├── common.py        # Shared Qt workers and log handler
+│   │   └── main_window.py   # Main PySide6 interface
+│   ├── ollama.py            # Ollama HTTP helpers and prompt template
+│   └── splitting.py         # Transcript splitting engine
+├── cli.py                   # Command-line entry point
+├── main.py                  # Desktop GUI launcher
 └── docs/
-    └── ARCHITECTURE.md    # Short architectural notes
+    └── ARCHITECTURE.md      # Additional architectural notes
 ```
 
-### Architecture overview
+### High-level architecture
 
 ```mermaid
 graph TD
-    A[Transcript Markdown] --> B{TranscriptSplitter}
-    B -->|Writes| C[Chapter .md files]
-    B -->|Optional| D[index.html]
-    C -->|Selected| E[DocumentGenerationRequest]
-    E --> F[OllamaClient]
-    F -->|Markdown| G[Chapter docs]
-    G --> H[GUI log updates]
+    A[Markdown transcript] --> B{TranscriptSplitter}
+    B -->|writes| C[Chapter files]
+    C -->|selection| D[DocumentGenerationRequest]
+    D --> E[Ollama client]
+    E -->|Markdown docs| F[Chapter documentation]
+    F --> G[GUI log updates]
 ```
 
 ### GUI workflow
@@ -52,74 +53,101 @@ graph TD
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant M as MainWindow
+    participant W as MainWindow
     participant S as SplitWorker
+    participant M as ModelListWorker
     participant D as DocumentationWorker
-    participant O as OllamaClient
+    participant O as Ollama API
 
-    U->>M: Choose transcript & output
-    U->>M: Click "Split Transcript"
-    M->>S: Start background split
-    S-->>M: Progress + chapter list
-    U->>M: Enable Ollama & select chapters
-    U->>M: Click "Generate documentation"
-    M->>D: Start background generation
-    D->>O: Stream prompt & receive markdown
-    O-->>D: Markdown content
-    D-->>M: Success / failure per chapter
-    M-->>U: Log updates & refreshed list
+    U->>W: Drop or select transcript
+    U->>W: Choose output folder
+    U->>W: Click "Split Transcript"
+    W->>S: Launch background split
+    S-->>W: Progress + chapters
+    U->>W: Enable Ollama panel
+    W->>M: Refresh available models
+    M-->>W: Installed model list
+    U->>W: Adjust parameters & prompt
+    U->>W: Select chapters and generate docs
+    W->>D: Background documentation job
+    D->>O: Prompt with chapter content
+    O-->>D: Markdown response
+    D-->>W: Success or failure per chapter
+    W-->>U: Log updates & saved files
 ```
 
-## Installation
+## Getting started
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/yourname/docalypt.git
    cd docalypt
    ```
-2. **Install dependencies** (example using pip)
+2. **Create a virtual environment and install dependencies**
    ```bash
    python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt  # or install PySide6, click, toml manually
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt  # Install PySide6, click, toml, requests
    ```
+3. **(Optional) Install and run Ollama**
+   - Download from [ollama.com](https://ollama.com/).
+   - Start the Ollama service and pull the models you want to use, e.g.:
+     ```bash
+     ollama pull llama3
+     ```
 
-> Docalypt targets Python 3.9+. PySide6 is required for the GUI; Click and toml
-> are required for the CLI.
+## Running Docalypt
 
-## Usage
-
-### CLI
-
-```bash
-python cli.py transcript.md --output-dir ./chapters --html
-```
-
-### Full GUI
+### Desktop application
 
 ```bash
 python main.py
 ```
 
-### Compact GUI
+Key controls in the **LLM / Ollama** section:
+
+- **Enable documentation generation with Ollama** – toggles whether the
+  documentation workflow is active.
+- **Model selector** – populated with locally installed models via the
+  **Refresh models** button (which calls the Ollama API in a background thread).
+  You can also type a model name manually.
+- **Generation parameters** – temperature, top-p, and max tokens inputs map
+  directly to the Ollama request payload.
+- **Prompt ingestion tab** – customise the Markdown prompt template used for
+  each chapter. A reset button restores the default template.
+- **Chapter list** – select the chapters that should receive generated
+  documentation, then click **Generate documentation**.
+
+Each generated Markdown file is saved alongside its chapter as
+`<chapter_basename>.docs.md`, and the log panel records successes or failures
+per chapter.
+
+### Command-line interface
 
 ```bash
-python compact_gui.py
+python cli.py transcript.md --output-dir ./chapters
 ```
 
-## Ollama integration
+The CLI preserves the existing behaviour for splitting transcripts and respects
+configuration loaded from `config.toml`.
 
-1. Install and run [Ollama](https://ollama.com/).
-2. Download a local model, for example `ollama run llama3`.
-3. In the GUI, enable the **LLM / Ollama** section, enter the model name, tweak
-   parameters, select chapters, and click **Generate documentation**.
+## Troubleshooting
 
-Each documentation file is saved alongside the chapter as `<chapter>.docs.md`.
+- Ensure Ollama is running locally before refreshing the model list or starting
+  documentation jobs.
+- If no models appear, use the log panel to inspect errors from the Ollama
+  service and verify that the API is reachable at the default endpoint.
+- The GUI keeps heavy work in worker threads. If you need to exit while jobs
+  are running, wait for them to finish or cancel the Ollama task from the Ollama
+  CLI.
 
-## Contributing
+## Development notes
 
-- Format code with `black` and `isort`.
-- Run `python -m compileall docalypt cli.py main.py compact_gui.py` before
-  submitting changes.
+- Format code with your preferred tool; the project targets Python 3.9+.
+- Run a quick import check before committing:
+  ```bash
+  python -m compileall docalypt cli.py main.py
+  ```
+- Additional diagrams and rationale live in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-For further architectural notes, read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Enjoy documenting your transcripts!

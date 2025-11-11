@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self._split_thread: Optional[QThread] = None
         self._doc_thread: Optional[QThread] = None
         self._model_thread: Optional[QThread] = None
+        self._model_worker: Optional[ModelListWorker] = None
         self._available_models: list[str] = []
 
         self._build_ui()
@@ -325,21 +326,23 @@ class MainWindow(QMainWindow):
         self.refresh_models_btn.setText("Refreshing…")
 
         worker = ModelListWorker(DEFAULT_ENDPOINT)
-        self._model_thread = QThread()
-        worker.moveToThread(self._model_thread)
-        self._model_thread.started.connect(worker.run)
+        thread = QThread(self)
+        self._model_worker = worker
+        self._model_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.finished.connect(self._handle_models_loaded)
+        worker.failed.connect(self._handle_models_failed)
+        worker.finished.connect(thread.quit)
+        worker.failed.connect(thread.quit)
+        thread.finished.connect(self._finalize_model_refresh)
+        thread.start()
 
-        def handle_finished(models: list[str], *, worker: ModelListWorker = worker) -> None:
-            self._on_models_loaded(models)
-            self._finalize_model_refresh(worker)
+    def _handle_models_loaded(self, models: list[str]) -> None:
+        self._on_models_loaded(models)
 
-        def handle_failed(message: str, *, worker: ModelListWorker = worker) -> None:
-            self._on_models_failed(message)
-            self._finalize_model_refresh(worker)
-
-        worker.finished.connect(handle_finished)
-        worker.failed.connect(handle_failed)
-        self._model_thread.start()
+    def _handle_models_failed(self, message: str) -> None:
+        self._on_models_failed(message)
 
     def _on_models_loaded(self, models: list[str]) -> None:
         self._available_models = models
@@ -371,13 +374,15 @@ class MainWindow(QMainWindow):
         self.model_combo.blockSignals(False)
         self._update_doc_controls()
 
-    def _finalize_model_refresh(self, worker: ModelListWorker) -> None:
+    def _finalize_model_refresh(self) -> None:
+        if self._model_worker:
+            self._model_worker.deleteLater()
+            self._model_worker = None
         if self._model_thread:
-            self._model_thread.quit()
-            self._model_thread.wait()
+            self._model_thread.deleteLater()
             self._model_thread = None
-        worker.deleteLater()
         self.refresh_models_btn.setText("Refresh models")
+        self.refresh_models_btn.setEnabled(True)
         self._update_doc_controls()
 
     def _gather_settings(self) -> OllamaSettings:
