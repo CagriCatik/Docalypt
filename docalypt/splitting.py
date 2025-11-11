@@ -45,9 +45,10 @@ class TranscriptSplitter:
     on_progress: ProgressCallback | None = None
     pre_split_hooks: Iterable[TextHook] = field(default_factory=list)
     post_split_hooks: Iterable[FileHook] = field(default_factory=list)
+    config: AppConfig = field(init=False)
 
     def __post_init__(self) -> None:
-        self.config: AppConfig = load_config()
+        self.config = load_config()
         self.output_dir = (
             Path(self.output_dir).expanduser().resolve()
             if self.output_dir
