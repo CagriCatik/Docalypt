@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
@@ -36,15 +37,27 @@ from ..documentation import (
     DOCUMENTATION_SUBDIR,
     DocumentGenerationRequest,
     DocumentGenerationResult,
-    OllamaSettings,
+    LLMSettings,
     collect_chapter_files,
 )
-from ..ollama import DEFAULT_ENDPOINT, PROMPT_TEMPLATE
+from ..llm import (
+    DEFAULT_ANTHROPIC_ENDPOINT,
+    DEFAULT_ANTHROPIC_VERSION,
+    DEFAULT_OLLAMA_ENDPOINT,
+    DEFAULT_OPENAI_ENDPOINT,
+    PROMPT_TEMPLATE,
+    settings_from_env,
+)
 from ..splitting import TranscriptSplitter
 from .common import DocumentationWorker, ModelListWorker, QtLogHandler, SplitWorker
 
 DEFAULT_MODEL = "llama3"
 DOCS_SUBDIR = DOCUMENTATION_SUBDIR
+PROVIDER_OPTIONS = [
+    ("Local Ollama", "ollama"),
+    ("OpenAI compatible", "openai"),
+    ("Anthropic Claude", "anthropic"),
+]
 
 
 class MainWindow(QMainWindow):
@@ -59,6 +72,7 @@ class MainWindow(QMainWindow):
         self.logger = logging.getLogger("docalypt.gui")
         self.logger.setLevel(logging.INFO)
 
+        self._default_llm_settings = settings_from_env()
         self._input_path: Optional[Path] = None
         self._output_dir: Path = Path.cwd() / "chapters"
         self._split_thread: Optional[QThread] = None
@@ -68,8 +82,10 @@ class MainWindow(QMainWindow):
         self._model_thread: Optional[QThread] = None
         self._model_worker: Optional[ModelListWorker] = None
         self._available_models: list[str] = []
+        self._pending_model_provider: Optional[str] = None
 
         self._build_ui()
+        self._apply_default_settings()
         self._connect_signals()
         self._refresh_chapter_list()
         self._update_doc_controls()
@@ -106,10 +122,12 @@ class MainWindow(QMainWindow):
         self.log_area = QTextEdit(readOnly=True)
         layout.addWidget(self.log_area, stretch=1)
 
-        self.ollama_group = QGroupBox("LLM / Ollama")
+        self.ollama_group = QGroupBox("LLM Provider")
         ollama_layout = QVBoxLayout(self.ollama_group)
 
-        self.enable_ollama = QCheckBox("Enable documentation generation with Ollama")
+        self.enable_ollama = QCheckBox(
+            "Enable documentation generation with an LLM provider"
+        )
         ollama_layout.addWidget(self.enable_ollama)
 
         self.ollama_tabs = QTabWidget()
@@ -118,6 +136,15 @@ class MainWindow(QMainWindow):
         settings_tab = QWidget()
         settings_layout = QVBoxLayout(settings_tab)
         form = QFormLayout()
+
+        self.provider_combo = QComboBox()
+        for label, value in PROVIDER_OPTIONS:
+            self.provider_combo.addItem(label, value)
+        form.addRow("Provider", self.provider_combo)
+
+        self.endpoint_edit = QLineEdit()
+        self.endpoint_edit.setPlaceholderText(DEFAULT_OLLAMA_ENDPOINT)
+        form.addRow("Endpoint", self.endpoint_edit)
 
         self.model_combo = QComboBox()
         self.model_combo.setEditable(True)
@@ -131,6 +158,23 @@ class MainWindow(QMainWindow):
         model_widget = QWidget()
         model_widget.setLayout(model_row)
         form.addRow("Model", model_widget)
+
+        self.api_key_edit = QLineEdit()
+        self.api_key_edit.setEchoMode(QLineEdit.Password)
+        self.api_key_edit.setPlaceholderText("API key required for hosted providers")
+        self.api_key_row = QWidget()
+        api_layout = QHBoxLayout(self.api_key_row)
+        api_layout.setContentsMargins(0, 0, 0, 0)
+        api_layout.addWidget(self.api_key_edit)
+        form.addRow("API key", self.api_key_row)
+
+        self.version_edit = QLineEdit()
+        self.version_edit.setPlaceholderText(DEFAULT_ANTHROPIC_VERSION)
+        self.version_row = QWidget()
+        version_layout = QHBoxLayout(self.version_row)
+        version_layout.setContentsMargins(0, 0, 0, 0)
+        version_layout.addWidget(self.version_edit)
+        form.addRow("API version", self.version_row)
 
         self.temperature_spin = QDoubleSpinBox()
         self.temperature_spin.setRange(0.0, 2.0)
@@ -212,6 +256,77 @@ class MainWindow(QMainWindow):
         handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%H:%M:%S"))
         self.logger.addHandler(handler)
 
+    def _apply_default_settings(self) -> None:
+        settings = self._default_llm_settings
+        provider = (settings.provider or "ollama").strip().lower()
+        valid_providers = {value for _, value in PROVIDER_OPTIONS}
+        if provider not in valid_providers:
+            provider = "ollama"
+        index = self.provider_combo.findData(provider)
+        if index >= 0:
+            self.provider_combo.setCurrentIndex(index)
+        else:
+            self.provider_combo.setCurrentIndex(0)
+
+        if settings.model:
+            self.model_combo.setCurrentText(settings.model)
+        else:
+            self.model_combo.setCurrentText(DEFAULT_MODEL)
+
+        if settings.endpoint:
+            self.endpoint_edit.setText(settings.endpoint)
+        else:
+            self.endpoint_edit.setText("")
+
+        if settings.api_key:
+            self.api_key_edit.setText(settings.api_key)
+        else:
+            self.api_key_edit.clear()
+
+        if settings.anthropic_version:
+            self.version_edit.setText(settings.anthropic_version)
+        else:
+            self.version_edit.setText(DEFAULT_ANTHROPIC_VERSION)
+
+        self._apply_provider_fields()
+
+    def _apply_provider_fields(self) -> None:
+        provider = self._current_provider()
+        endpoint_placeholder = self._default_endpoint_for(provider)
+        self.endpoint_edit.setPlaceholderText(endpoint_placeholder)
+
+        requires_key = self._provider_requires_key(provider)
+        is_anthropic = provider == "anthropic"
+
+        self.api_key_row.setVisible(requires_key)
+        self.version_row.setVisible(is_anthropic)
+
+        if is_anthropic and not self.version_edit.text().strip():
+            self.version_edit.setText(DEFAULT_ANTHROPIC_VERSION)
+
+    def _current_provider(self) -> str:
+        data = self.provider_combo.currentData()
+        if isinstance(data, str):
+            return data
+        return "ollama"
+
+    def _default_endpoint_for(self, provider: str) -> str:
+        if provider == "openai":
+            return DEFAULT_OPENAI_ENDPOINT
+        if provider == "anthropic":
+            return DEFAULT_ANTHROPIC_ENDPOINT
+        return DEFAULT_OLLAMA_ENDPOINT
+
+    @staticmethod
+    def _provider_requires_key(provider: str) -> bool:
+        return provider in {"openai", "anthropic"}
+
+    def _provider_label(self, provider: str) -> str:
+        for label, value in PROVIDER_OPTIONS:
+            if value == provider:
+                return label
+        return provider.capitalize()
+
     def _connect_signals(self) -> None:
         self.open_btn.clicked.connect(self._open_file)
         self.output_btn.clicked.connect(self._select_output)
@@ -220,6 +335,7 @@ class MainWindow(QMainWindow):
         self.clear_log_btn.clicked.connect(self.log_area.clear)
         self.save_log_btn.clicked.connect(self._save_log)
         self.enable_ollama.stateChanged.connect(self._update_doc_controls)
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
         self.model_combo.currentTextChanged.connect(self._update_doc_controls)
         self.chapter_list.itemSelectionChanged.connect(self._update_doc_controls)
         self.select_all_btn.clicked.connect(self._select_all)
@@ -359,14 +475,29 @@ class MainWindow(QMainWindow):
         self.prompt_edit.setPlainText(PROMPT_TEMPLATE)
         self.logger.info("Prompt template reset to default")
 
+    def _on_provider_changed(self) -> None:
+        self._apply_provider_fields()
+        provider = self._current_provider()
+        if provider != "ollama" and self._available_models:
+            self._available_models = []
+            self._apply_model_choices([])
+        self._update_doc_controls()
+
     def _refresh_models(self) -> None:
         if self._model_thread and self._model_thread.isRunning():
+            return
+        provider = self._current_provider()
+        if provider != "ollama":
+            self.logger.info(
+                "Model listing is only available for local Ollama providers."
+            )
             return
         self.logger.info("Refreshing Ollama models…")
         self.refresh_models_btn.setEnabled(False)
         self.refresh_models_btn.setText("Refreshing…")
 
-        worker = ModelListWorker(DEFAULT_ENDPOINT)
+        self._pending_model_provider = provider
+        worker = ModelListWorker(self._gather_settings(require_model=False))
         thread = QThread(self)
         self._model_worker = worker
         self._model_thread = thread
@@ -387,14 +518,18 @@ class MainWindow(QMainWindow):
 
     def _on_models_loaded(self, models: list[str]) -> None:
         self._available_models = models
+        provider = self._pending_model_provider or "ollama"
+        label = self._provider_label(provider)
         if models:
-            self.logger.info("Discovered %d Ollama model(s)", len(models))
+            self.logger.info("Discovered %d model(s) from %s", len(models), label)
         else:
-            self.logger.warning("No Ollama models were reported by the local instance")
+            self.logger.warning("No models were reported by %s", label)
         self._apply_model_choices(models)
 
     def _on_models_failed(self, message: str) -> None:
-        self.logger.error("Failed to query Ollama models: %s", message)
+        provider = self._pending_model_provider or "ollama"
+        label = self._provider_label(provider)
+        self.logger.error("Failed to query models from %s: %s", label, message)
 
     def _apply_model_choices(self, models: list[str]) -> None:
         current_text = self.model_combo.currentText().strip()
@@ -424,11 +559,20 @@ class MainWindow(QMainWindow):
             self._model_thread = None
         self.refresh_models_btn.setText("Refresh models")
         self.refresh_models_btn.setEnabled(True)
+        self._pending_model_provider = None
         self._update_doc_controls()
 
-    def _gather_settings(self) -> OllamaSettings:
-        return OllamaSettings(
-            model=self.model_combo.currentText().strip(),
+    def _gather_settings(self, require_model: bool = True) -> LLMSettings:
+        provider = self._current_provider()
+        model = self.model_combo.currentText().strip()
+        if not model and not require_model:
+            model = ""
+        endpoint = self.endpoint_edit.text().strip() or None
+        api_key = self.api_key_edit.text().strip() or None
+        version = self.version_edit.text().strip() or None
+        settings = LLMSettings(
+            provider=provider,
+            model=model,
             temperature=float(self.temperature_spin.value()),
             top_p=float(self.top_p_spin.value()),
             max_tokens=int(self.max_tokens_spin.value()),
@@ -436,15 +580,30 @@ class MainWindow(QMainWindow):
             frequency_penalty=float(self.frequency_penalty_spin.value()),
             repeat_penalty=float(self.repeat_penalty_spin.value()),
             top_k=int(self.top_k_spin.value()),
+            endpoint=endpoint,
+            api_key=api_key,
+            anthropic_version=version or None,
         )
+        if provider == "anthropic" and not settings.anthropic_version:
+            settings.anthropic_version = DEFAULT_ANTHROPIC_VERSION
+        return settings
 
     def _update_doc_controls(self) -> None:
         enabled = self.enable_ollama.isChecked()
+        provider = self._current_provider()
+        requires_key = self._provider_requires_key(provider)
+        is_anthropic = provider == "anthropic"
+        is_ollama = provider == "ollama"
+        self._apply_provider_fields()
+
         has_model = bool(self.model_combo.currentText().strip())
         selected = bool(self._selected_chapters())
         has_chapters = self.chapter_list.count() > 0
+        has_key = bool(self.api_key_edit.text().strip()) if requires_key else True
 
         for widget in (
+            self.provider_combo,
+            self.endpoint_edit,
             self.model_combo,
             self.temperature_spin,
             self.top_p_spin,
@@ -455,18 +614,36 @@ class MainWindow(QMainWindow):
             self.top_k_spin,
             self.chapter_list,
             self.select_all_btn,
-            self.refresh_models_btn,
             self.prompt_edit,
             self.reset_prompt_btn,
             self.ollama_tabs,
         ):
             widget.setEnabled(enabled)
 
+        self.api_key_edit.setEnabled(enabled and requires_key)
+        self.version_edit.setEnabled(enabled and is_anthropic)
+
+        self.refresh_models_btn.setVisible(is_ollama)
+        self.refresh_models_btn.setEnabled(enabled and is_ollama)
+        if not is_ollama:
+            self.refresh_models_btn.setToolTip(
+                "Model discovery is only available for local Ollama instances."
+            )
+        else:
+            self.refresh_models_btn.setToolTip("")
+
         self.select_all_btn.setEnabled(enabled and has_chapters)
-        self.generate_docs_btn.setEnabled(enabled and has_model and selected)
+        ready = enabled and has_model and selected and has_key
+        self.generate_docs_btn.setEnabled(ready)
 
         if enabled and not has_model:
-            self.generate_docs_btn.setToolTip("Provide a model name to enable generation.")
+            self.generate_docs_btn.setToolTip(
+                "Provide a model name to enable generation."
+            )
+        elif enabled and not has_key:
+            self.generate_docs_btn.setToolTip(
+                "Provide an API key for the selected provider to enable generation."
+            )
         else:
             self.generate_docs_btn.setToolTip("")
 
@@ -489,8 +666,9 @@ class MainWindow(QMainWindow):
             destination_dirname=DOCS_SUBDIR,
         )
         self.logger.info(
-            "Generating documentation with %s for %d chapters…",
+            "Generating documentation with %s (%s) for %d chapters…",
             settings.model,
+            self._provider_label(settings.provider),
             len(chapters),
         )
         self.generate_docs_btn.setEnabled(False)

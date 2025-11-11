@@ -9,6 +9,7 @@ from pathlib import Path
 import click
 
 from docalypt import TranscriptSplitter
+from docalypt.env import load_env
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,6 +28,7 @@ logger = logging.getLogger("docalypt.cli")
 def cli(input: Path, output_dir: Path | None, marker: str | None, export_html: bool, verbose: bool) -> None:
     """Split a Markdown transcript into chapter files."""
 
+    load_env()
     if verbose:
         logger.setLevel(logging.DEBUG)
 

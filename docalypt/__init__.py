@@ -4,6 +4,7 @@ from .config import AppConfig, load_config
 from .splitting import TranscriptSplitter
 from .documentation import (
     DOCUMENTATION_SUBDIR,
+    LLMSettings,
     OllamaSettings,
     DocumentGenerationRequest,
     DocumentGenerationResult,
@@ -16,6 +17,7 @@ __all__ = [
     "DOCUMENTATION_SUBDIR",
     "DocumentGenerationRequest",
     "DocumentGenerationResult",
+    "LLMSettings",
     "OllamaSettings",
     "TranscriptSplitter",
     "collect_chapter_files",

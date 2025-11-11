@@ -23,6 +23,8 @@ identically.
 * **Integrated Ollama controls** – discover installed models, tune generation
   parameters (temperature, top-p, max tokens, presence/frequency penalties,
   repeat penalty, top-k), and craft prompts from a dedicated GUI tab.
+* **Flexible LLM providers** – switch between local Ollama instances and hosted
+  services such as OpenAI or Anthropic by editing a simple `.env` file.
 * **Dedicated documentation folder** – generated Markdown lives under a
   `documentation/` subdirectory next to the chapter files, keeping source and
   AI output clearly separated.
@@ -38,7 +40,7 @@ identically.
 │   ├── gui/
 │   │   ├── common.py        # Shared Qt workers and log handler
 │   │   └── main_window.py   # Main PySide6 interface
-│   ├── ollama.py            # Ollama HTTP helpers and prompt template
+│   ├── llm.py               # LLM provider clients and prompt template
 │   └── splitting.py         # Transcript splitting engine
 ├── cli.py                   # Command-line entry point
 ├── main.py                  # Desktop GUI launcher
@@ -103,7 +105,18 @@ sequenceDiagram
    pip install -r requirements.txt  # Install PySide6, click, toml, requests
    ```
 
-3. **Install and run Ollama**
+3. **Configure environment variables**
+
+   Copy the sample configuration and fill in the provider you plan to use.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   * `DOCALYPT_LLM_PROVIDER` accepts `ollama`, `openai`, or `anthropic`.
+   * Provide the matching API key and endpoint URLs when using hosted models.
+
+4. **Install and run Ollama**
 
    * Download from [ollama.com](https://ollama.com/).
    * Start the Ollama service and pull the models you want to use, e.g.:
