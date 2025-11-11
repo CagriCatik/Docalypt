@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..documentation import DocumentGenerationRequest, OllamaSettings, collect_chapter_files
+from ..documentation import DOCUMENTATION_SUBDIR, DocumentOutcome, OllamaSettings, collect_chapter_files
 from ..splitting import TranscriptSplitter
 from .common import DocumentationWorker, QtLogHandler, SplitWorker
 
@@ -37,7 +37,7 @@ class CompactWindow(QWidget):
         self.logger.setLevel(logging.INFO)
 
         self._input: Optional[Path] = None
-        self._output_dir: Path = Path.cwd() / "chapters"
+        self._output_dir: Path = Path.cwd() / "examples" / "chapters"
         self._split_thread: Optional[QThread] = None
         self._doc_thread: Optional[QThread] = None
 
@@ -157,14 +157,17 @@ class CompactWindow(QWidget):
             return
 
         settings = OllamaSettings(model=model)
-        request = DocumentGenerationRequest(chapters=chapters, settings=settings)
         self.logger.info("Generating documentation with %s for %d chapters", model, len(chapters))
 
         self.enable_ollama.setEnabled(False)
         self.model_edit.setEnabled(False)
 
         self._doc_thread = QThread()
-        worker = DocumentationWorker(request)
+        worker = DocumentationWorker(
+            chapters=chapters,
+            settings=settings,
+            destination_dirname=DOCUMENTATION_SUBDIR,
+        )
         worker.moveToThread(self._doc_thread)
         self._doc_thread.started.connect(worker.run)
         worker.chapter_done.connect(
@@ -173,11 +176,15 @@ class CompactWindow(QWidget):
         worker.chapter_failed.connect(
             lambda chapter, error: self.logger.error("Failed %s: %s", chapter, error)
         )
-        worker.finished.connect(lambda _: self._on_doc_finished(worker))
+        worker.finished.connect(lambda outcome: self._on_doc_finished(worker, outcome))
         self._doc_thread.start()
 
-    def _on_doc_finished(self, worker: DocumentationWorker) -> None:
-        self.logger.info("Documentation finished")
+    def _on_doc_finished(self, worker: DocumentationWorker, outcome: DocumentOutcome) -> None:
+        self.logger.info(
+            "Documentation finished (%d succeeded, %d failed)",
+            len(outcome.written),
+            len(outcome.failures),
+        )
         self.enable_ollama.setEnabled(True)
         self.model_edit.setEnabled(True)
         if self._doc_thread:

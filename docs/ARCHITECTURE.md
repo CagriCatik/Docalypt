@@ -1,57 +1,84 @@
-# Docalypt Architecture Notes
+# Docalypt Architecture Overview
 
-The project is organised into three layers:
-
-1. **Core services** (`docalypt.splitting`, `docalypt.documentation`,
-   `docalypt.ollama`) provide reusable functionality for parsing transcripts,
-   preparing prompts, and calling the local Ollama server.
-2. **Presentation** (`docalypt.gui.main_window`) delivers the PySide6 desktop
-   interface backed by shared worker classes for long-running tasks.
-3. **Entrypoints** (`cli.py`, `main.py`) load either the command-line tool or the
-   GUI while delegating work to the core modules.
+Docalypt now follows a layered architecture that separates pure business logic
+from infrastructure and presentation concerns.
 
 ```mermaid
-graph LR
-    subgraph Core
-        S[TranscriptSplitter]
-        D[Documentation helpers]
-        O[OllamaClient]
+graph TD
+    subgraph Domain
+        Parser[TranscriptParser]
+        Models[Domain Models]
     end
 
-    subgraph GUI
-        MW[MainWindow]
+    subgraph Application
+        SplitUseCase[SplitTranscriptUseCase]
+        DocsUseCase[GenerateDocumentationUseCase]
     end
 
-    CLI[CLI]
+    subgraph Infrastructure
+        Repo[FileSystemChapterRepository]
+        Config[AppConfig Loader]
+        Gateway[OllamaGateway]
+    end
 
-    CLI --> S
-    MW --> S
-    MW --> D
-    D --> O
+    subgraph Interfaces
+        CLI[Click CLI]
+        Qt[PySide GUI]
+        Streamlit[Streamlit App]
+    end
+
+    CLI --> SplitUseCase
+    Qt --> SplitUseCase
+    Streamlit --> SplitUseCase
+    Streamlit --> DocsUseCase
+    Qt --> DocsUseCase
+    SplitUseCase --> Parser
+    SplitUseCase --> Repo
+    DocsUseCase --> Gateway
+    Config --> SplitUseCase
 ```
 
-## Threading model
+## Layer responsibilities
 
-- Splitting and documentation run inside Qt `QThread` workers to keep the UI
-  responsive.
-- Workers emit progress and status signals consumed by the GUI log panel.
-- The CLI uses the same `TranscriptSplitter` but runs synchronously, making it
-  easy to test outside the GUI.
+- **Domain (`docalypt/domain`)** holds immutable data structures such as
+  `Chapter`, `ChapterDocument`, and the pure `TranscriptParser` used to extract
+  segments from raw Markdown transcripts.
+- **Application (`docalypt/application`)** coordinates use-cases. Each use-case
+  accepts domain services and infrastructure ports, returning structured result
+  objects that are consumed by the interfaces.
+- **Infrastructure (`docalypt/infrastructure`)** contains adapters for the
+  filesystem (`FileSystemChapterRepository`), configuration (`load_app_config`),
+  and the Ollama HTTP gateway. The infrastructure is the only layer that performs
+  I/O.
+- **Interfaces (`docalypt/interfaces`)** exposes the CLI, existing PySide
+  windows, and the new Streamlit web UI. Each interface wires user input into the
+  application use-cases and listens for domain-level results instead of reaching
+  into infrastructure details.
+
+## Worker model
+
+- The PySide GUI continues to execute splitting and documentation generation in
+  background `QThread` workers. Workers now use the application services to
+  produce results so behaviour is consistent with the CLI and Streamlit front-ends.
+- The CLI and Streamlit interfaces call the same use-cases synchronously while
+  reporting progress via callbacks or Streamlit widgets.
 
 ## Documentation output
 
-- Documentation files are written to a dedicated `documentation/` subdirectory
-  inside the chosen output folder.
-- `DocumentGenerationRequest.destination_dirname` controls the target directory
-  name so future front-ends can redirect output without rewriting core logic.
-- `DocumentGenerationResult` returns both the chapter path and the generated
-  documentation path for precise logging and UI feedback.
+- The filesystem repository writes chapter Markdown files and uses a Jinja2
+  template to render an `index.html` when requested.
+- Documentation jobs write results to a configurable `documentation/` folder
+  beneath the chapter directory. The `DocumentOutcome` structure exposes both the
+  source chapter and destination document paths so front-ends can present clear
+  feedback.
 
-## Extensibility
+## Extending the system
 
-- Add new Ollama parameters by extending `OllamaSettings`; the GUI binds each
-  control directly to the dataclass fields.
-- Hook additional post-processing by appending to
-  `TranscriptSplitter.post_split_hooks`.
-- Additional front-ends can reuse the documented request/response types from
-  `docalypt.documentation`.
+- Add new persistence mechanisms by implementing the `ChapterRepository`
+  protocol and wiring it into the application services.
+- Add a different LLM backend by providing an object that implements the
+  `DocumentationGateway` protocol and injecting it into the documentation
+  use-case.
+- Front-ends should reside in `docalypt/interfaces/<channel>/` and depend only on
+  application services. This keeps UI churn from rippling through the business
+  logic.

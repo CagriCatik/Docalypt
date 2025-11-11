@@ -3,250 +3,171 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![UI-PySide6](https://img.shields.io/badge/UI-PySide6-brightgreen)](https://doc.qt.io/qtforpython-6/)
 [![LLM-Ollama](https://img.shields.io/badge/LLM-Ollama-orange)](https://ollama.com/)
-[![Interface](https://img.shields.io/badge/interface-CLI%20%7C%20GUI-informational)](#running-docalypt)
+[![Interface](https://img.shields.io/badge/interface-CLI%20%7C%20GUI%20%7C%20Streamlit-informational)](#running-docalypt)
 
-
-Docalypt turns long-form Markdown transcripts into timestamped chapter files and
-optionally generates supporting documentation for each chapter with a local
-Ollama model. The PySide6 desktop application and the CLI share the same
-splitting and documentation pipeline so that every interface behaves
-identically.
+Docalypt is a transcript productivity toolkit. It parses long-form Markdown
+transcripts into clean chapter files, renders optional HTML summaries, and can
+ask a local Ollama model to generate documentation for each chapter. All user
+interfaces—CLI, PySide6 desktop, and Streamlit web—share the same application
+services so behaviour remains consistent everywhere.
 
 ---
 
-## Key capabilities
+## Features
 
-* **Reliable splitting** – the chapter generation workflow and on-disk layout
-  remain backward compatible with the original tool.
-* **Responsive desktop app** – drag & drop a transcript, monitor progress, and
-  launch documentation jobs without freezing the UI thanks to worker threads.
-* **Integrated Ollama controls** – discover installed models, tune generation
-  parameters (temperature, top-p, max tokens, presence/frequency penalties,
-  repeat penalty, top-k), and craft prompts from a dedicated GUI tab.
-* **Dedicated documentation folder** – generated Markdown lives under a
-  `documentation/` subdirectory next to the chapter files, keeping source and
-  AI output clearly separated.
-* **Single codebase** – configuration, splitting, and documentation helpers are
-  packaged for reuse by both the GUI and the CLI.
+- **Layered architecture** – domain parsing, application use-cases, and
+  infrastructure adapters are cleanly separated for easier testing and future
+  extension.
+- **Multiple front-ends** – use the CLI for automation, the PySide desktop UI for
+  power-user workflows, or the Streamlit app for quick web-based reviews.
+- **Pluggable persistence & prompts** – filesystem repository renders chapters
+  and HTML via Jinja2 templates while prompt templates are user configurable.
+- **Ollama integration** – list local models, tune generation settings, and
+  stream results into any interface.
+- **Sample data** – example transcripts, prompts, and generated chapters live
+  under `examples/` to keep the repository lean and reproducible.
 
-## Repository layout
+## Project structure
 
-```text
+```
 .
-├── Docalypt/
-│   ├── documentation.py     # Documentation workflow and prompt handling
-│   ├── gui/
-│   │   ├── common.py        # Shared Qt workers and log handler
-│   │   └── main_window.py   # Main PySide6 interface
-│   ├── ollama.py            # Ollama HTTP helpers and prompt template
-│   └── splitting.py         # Transcript splitting engine
-├── cli.py                   # Command-line entry point
-├── main.py                  # Desktop GUI launcher
-└── docs/
-    └── ARCHITECTURE.md      # Additional architectural notes
+├── docalypt/
+│   ├── application/            # Use-cases coordinating domain & infrastructure
+│   ├── domain/                 # Pure models and transcript parser
+│   ├── infrastructure/
+│   │   ├── config/             # TOML configuration loader
+│   │   ├── llm/                # Ollama HTTP gateway
+│   │   └── storage/            # Filesystem repositories & templates
+│   ├── interfaces/
+│   │   ├── cli/                # Click-based CLI wiring
+│   │   ├── gui/                # PySide6 windows and workers
+│   │   └── streamlit/          # Streamlit view logic
+│   ├── documentation.py        # Compatibility façade around new services
+│   ├── ollama.py               # Backwards-compatible Ollama exports
+│   └── splitting.py            # Compatibility façade for TranscriptSplitter
+├── cli.py                      # CLI entry point (delegates to interfaces.cli)
+├── main.py                     # PySide6 launcher
+├── streamlit_app.py            # Streamlit entry point
+├── examples/                   # Sample transcripts, prompts, and chapters
+└── docs/                       # Architecture notes and design docs
 ```
 
-### High-level architecture
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a diagram of the clean
+architecture and extension guidance.
 
-```mermaid
-graph TD
-    A[Markdown transcript] --> B{TranscriptSplitter}
-    B -->|writes| C[Chapter files]
-    C -->|selection| D[DocumentGenerationRequest]
-    D --> E[Ollama client]
-    E -->|Markdown docs| F[documentation/<chapter>.docs.md]
-    F --> G[GUI log updates]
-```
+## Installation
 
-### GUI workflow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as MainWindow
-    participant S as SplitWorker
-    participant M as ModelListWorker
-    participant D as DocumentationWorker
-    participant O as Ollama API
-
-    U->>W: Drop or select transcript
-    U->>W: Choose output folder
-    U->>W: Click "Split Transcript"
-    W->>S: Launch background split
-    S-->>W: Progress + chapters
-    U->>W: Enable Ollama panel
-    W->>M: Refresh installed models
-    M-->>W: Model list
-    U->>W: Adjust parameters & prompt
-    U->>W: Select chapters and generate docs
-    W->>D: Background documentation job
-    D->>O: Prompt with chapter content
-    O-->>D: Markdown response
-    D-->>W: Success/failure per chapter
-    W-->>U: Log updates & saved files
-```
-
-## Getting started
-
-1. **Clone the repository**
+1. **Clone and create a virtual environment**
 
    ```bash
    git clone https://github.com/CagriCatik/Docalypt.git
    cd Docalypt
-   ```
-
-2. **Create a virtual environment and install dependencies**
-
-   ```bash
    python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -r requirements.txt  # Install PySide6, click, toml, requests
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
    ```
 
-3. **Install and run Ollama**
-
-   * Download from [ollama.com](https://ollama.com/).
-   * Start the Ollama service and pull the models you want to use, e.g.:
-
-     ```bash
-     ollama pull llama3
-     ```
-
-## Demo: from YouTube video to chapters and docs
-
-This demo walks through using Docalypt with a real-world hardware video:
-
-> [Design & assemble an ESP32 IoT 4-layer PCB](https://www.youtube.com/watch?v=LO9AO0XTX3M)
-
-### 1. Export the YouTube transcript
-
-Use any YouTube transcript exporter or manual copy of the transcript and save it
-as a Markdown file, for example:
-
-```text
-transcripts/
-└── esp32_iot_4_layer_pcb.md
-```
-
-Guidelines for the input file:
-
-* Use plain text or Markdown.
-* Preserve timestamps if the exporter provides them.
-* Keep the entire video transcript in a single file.
-
-### 2. Split the transcript into chapters (CLI)
-
-Run Docalypt on the exported transcript:
-
-```bash
-python cli.py transcripts/esp32_iot_4_layer_pcb.md --output-dir ./demo_chapters
-```
-
-After the run you will have a structure similar to:
-
-```text
-chapters/
-├── 000_intro.md
-├── 010_schematic_overview.md
-├── 020_layer_stackup.md
-└── 030_routing_strategies.md
-```
-
-### 3. Generate documentation with Ollama (GUI)
-
-You can now use the desktop app to generate per-chapter documentation from the
-same transcript:
-
-1. Start the GUI:
+2. **Install dependencies**
 
    ```bash
-   python main.py
+   pip install -r requirements.txt
    ```
 
-2. In the main window:
+3. **Install Ollama (optional)**
 
-   * Drag and drop `transcripts/esp32_iot_4_layer_pcb.md` or select it via the
-     file dialog.
-   * Choose `./demo_chapters` (or another directory) as the output folder.
-   * Click **Split Transcript** and wait for the chapters to appear in the list.
-
-3. Enable and configure Ollama:
-
-   * Open the **LLM / Ollama** tab.
-   * Check **Enable documentation generation with Ollama**.
-   * Click **Refresh models** and select your local model (for example `llama3.2:1b`).
-   * Optionally tune temperature, max tokens, and other parameters.
-   * Optionally adjust the prompt template in the Prompt tab to focus on PCB
-     design decisions, trade-offs, and best practices.
-
-4. Generate the docs:
-
-   * In the chapter list, select the chapters that you want documentation for
-     (for example, only the routing and layer stackup chapters).
-   * Click **Generate documentation**.
-
-Docalypt will create Markdown documentation files like:
-
-```text
-chapters/documentation/
-├── 000_intro.docs.md
-├── 010_schematic_overview.md
-├── 010_schematic_overview.docs.md
-├── 020_layer_stackup.md
-├── 020_layer_stackup.docs.md
-├── 030_routing_strategies.md
-└── 030_routing_strategies.docs.md
-```
-
-Each `.docs.md` file contains AI-generated notes, summaries, or explanations
-derived from the corresponding chapter and the prompt you configured.
+   Download from [ollama.com](https://ollama.com/), run the service, and pull a
+   model (for example `ollama pull llama3`). The documentation workflows will
+   skip Ollama integration automatically if the service is unavailable.
 
 ## Running Docalypt
 
-### Desktop application
+### CLI
+
+Split a transcript and (optionally) render an HTML index:
+
+```bash
+python cli.py split examples/transcripts/esp32_iot_4_layer_pcb.md --output-dir ./output --html
+```
+
+Generate documentation for an existing chapter directory:
+
+```bash
+python cli.py docs ./output --model llama3 --temperature 0.3
+```
+
+### PySide desktop GUI
 
 ```bash
 python main.py
 ```
 
-Key controls in the **LLM / Ollama** section:
+1. Select or drag a transcript into the window.
+2. Pick an output directory (defaults to `examples/chapters`).
+3. Click **Split Transcript** to generate chapter Markdown files.
+4. Enable the Ollama panel to configure generation parameters and create
+   documentation.
 
-* **Enable documentation generation with Ollama** – toggles the documentation
-  workflow.
-* **Model selector** – populated with locally installed models via the
-  **Refresh models** button (which calls the Ollama API in a background thread).
-  You can also type a model name manually.
-* **Generation parameters** – temperature, top-p, max tokens, presence penalty,
-  frequency penalty, repeat penalty, and top-k map directly to the Ollama
-  request payload.
-* **Prompt ingestion tab** – customise the Markdown prompt template used for
-  each chapter. A reset button restores the default template.
-* **Chapter list** – select the chapters that should receive generated
-  documentation, then click **Generate documentation**.
-
-Each generated Markdown file is saved to
-`<output_dir>/documentation/<chapter_basename>.docs.md`. The log panel records
-successes and failures for every chapter so you can quickly identify problems.
-
-### Command-line interface
+### Streamlit web app
 
 ```bash
-python cli.py transcript.md --output-dir ./chapters
+streamlit run streamlit_app.py
 ```
 
-The CLI preserves the existing behaviour for splitting transcripts and respects
-configuration loaded from `config.toml`.
+The Streamlit UI provides two tabs:
 
-## Troubleshooting
+1. **Split Transcript** – upload a Markdown transcript, choose an output
+   directory, and optionally render an HTML index. Results are stored on disk and
+   listed in the UI.
+2. **Generate Documentation** – select chapters, adjust Ollama settings, and
+   stream documentation output. Results reuse the same file layout as the CLI and
+   desktop app.
 
-* Ensure Ollama is running locally before refreshing the model list or starting
-  documentation jobs.
-* If no models appear, use the log panel to inspect errors from the Ollama
-  service and verify that the API is reachable at the default endpoint.
-* The GUI keeps heavy work in worker threads. If you need to exit while jobs
-  are running, wait for them to finish or stop the Ollama task from the Ollama
-  CLI.
+## Configuration
 
-## Development notes
+Runtime settings live in `~/.config/docalypt/config.toml`:
 
-* Additional diagrams and rationale live in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+```toml
+marker_regex = "\((\d{1,2}:\d{2}(?::\d{2})?)\)"
+output_dir = "~/docalypt/chapters"
+html_template = "~/docalypt/templates/index.html"
+```
+
+- `marker_regex` – regex used to detect timestamp markers.
+- `output_dir` – default directory for generated chapters.
+- `html_template` – optional path to a custom Jinja2 template used for the HTML
+  index.
+
+If no config file exists, sensible defaults are applied automatically.
+
+## Sample workflow
+
+Example assets in `examples/` match the repository’s default settings:
+
+1. Split the included transcript with the CLI:
+
+   ```bash
+   python cli.py split examples/transcripts/esp32_iot_4_layer_pcb.md --output-dir examples/chapters --html
+   ```
+
+2. Launch the Streamlit app and open the **Generate Documentation** tab to select
+   from the same `examples/chapters` directory.
+
+3. Use the PySide GUI to explore the same files—the chapter list and generated
+   documents remain in sync because all front-ends share the filesystem
+   repository.
+
+## Extending & contributing
+
+- New persistence backends should implement the `ChapterRepository` protocol and
+  live under `docalypt/infrastructure/storage/`.
+- Alternative LLM providers should implement `DocumentationGateway` under
+  `docalypt/infrastructure/llm/` and be wired into
+  `GenerateDocumentationUseCase`.
+- Front-end additions belong under `docalypt/interfaces/` and should depend only
+  on application services.
+- Run `ruff`/`black`/`pytest` (or your preferred equivalents) before submitting
+  changes; add unit tests for new business logic where practical.
+
+## License
+
+This project is released under the MIT License. See [LICENSE](LICENSE) for
+details.

@@ -32,13 +32,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from ..documentation import (
-    DOCUMENTATION_SUBDIR,
-    DocumentGenerationRequest,
-    DocumentGenerationResult,
-    OllamaSettings,
-    collect_chapter_files,
-)
+from ..documentation import DOCUMENTATION_SUBDIR, DocumentOutcome, OllamaSettings, collect_chapter_files
 from ..ollama import DEFAULT_ENDPOINT, PROMPT_TEMPLATE
 from ..splitting import TranscriptSplitter
 from .common import DocumentationWorker, ModelListWorker, QtLogHandler, SplitWorker
@@ -60,7 +54,7 @@ class MainWindow(QMainWindow):
         self.logger.setLevel(logging.INFO)
 
         self._input_path: Optional[Path] = None
-        self._output_dir: Path = Path.cwd() / "chapters"
+        self._output_dir: Path = Path.cwd() / "examples" / "chapters"
         self._split_thread: Optional[QThread] = None
         self._split_worker: Optional[SplitWorker] = None
         self._doc_thread: Optional[QThread] = None
@@ -482,12 +476,6 @@ class MainWindow(QMainWindow):
             return
         settings = self._gather_settings()
         prompt_template = self.prompt_edit.toPlainText().strip() or PROMPT_TEMPLATE
-        request = DocumentGenerationRequest(
-            chapters=chapters,
-            settings=settings,
-            prompt_template=prompt_template,
-            destination_dirname=DOCS_SUBDIR,
-        )
         self.logger.info(
             "Generating documentation with %s for %d chapters…",
             settings.model,
@@ -502,7 +490,12 @@ class MainWindow(QMainWindow):
             return
 
         thread = QThread(self)
-        worker = DocumentationWorker(request)
+        worker = DocumentationWorker(
+            chapters=chapters,
+            settings=settings,
+            prompt_template=prompt_template,
+            destination_dirname=DOCS_SUBDIR,
+        )
         worker.moveToThread(thread)
 
         thread.started.connect(worker.run)
@@ -522,7 +515,7 @@ class MainWindow(QMainWindow):
     def _on_chapter_failed(self, chapter_name: str, error: str) -> None:
         self.logger.error("Failed to document %s: %s", chapter_name, error)
 
-    def _on_generation_finished(self, result: DocumentGenerationResult) -> None:
+    def _on_generation_finished(self, result: DocumentOutcome) -> None:
         self.logger.info(
             "Documentation generation finished (%d succeeded, %d failed)",
             len(result.written),

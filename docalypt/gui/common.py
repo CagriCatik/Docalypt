@@ -9,12 +9,8 @@ from typing import Sequence
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import QTextEdit
 
-from ..documentation import (
-    DocumentGenerationRequest,
-    DocumentGenerationResult,
-    generate_documentation,
-)
-from ..ollama import OllamaError, list_local_models
+from ..documentation import DOCUMENTATION_SUBDIR, DocumentOutcome, generate_documentation
+from ..ollama import OllamaError, OllamaSettings, list_local_models
 from ..splitting import TranscriptSplitter
 
 
@@ -53,16 +49,30 @@ class SplitWorker(QObject):
 
 
 class DocumentationWorker(QObject):
-    finished = Signal(DocumentGenerationResult)
+    finished = Signal(DocumentOutcome)
     chapter_done = Signal(str, str)
     chapter_failed = Signal(str, str)
 
-    def __init__(self, request: DocumentGenerationRequest):
+    def __init__(
+        self,
+        chapters: Sequence[Path],
+        settings: OllamaSettings,
+        prompt_template: str | None = None,
+        destination_dirname: str = DOCUMENTATION_SUBDIR,
+    ):
         super().__init__()
-        self.request = request
+        self.chapters = chapters
+        self.settings = settings
+        self.prompt_template = prompt_template
+        self.destination_dirname = destination_dirname
 
     def run(self) -> None:
-        result = generate_documentation(self.request)
+        result = generate_documentation(
+            chapters=self.chapters,
+            settings=self.settings,
+            destination_dirname=self.destination_dirname,
+            prompt_template=self.prompt_template,
+        )
         for chapter, destination in result.written:
             self.chapter_done.emit(chapter.name, str(destination))
         for chapter, error in result.failures:
