@@ -7,22 +7,23 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QDesktopServices, QDragEnterEvent, QDropEvent, QIcon, QIntValidator
+from PySide6.QtGui import QDesktopServices, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
+    QComboBox,
     QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
     QPushButton,
     QProgressBar,
+    QTabWidget,
     QSpinBox,
     QTextEdit,
     QVBoxLayout,
@@ -36,8 +37,9 @@ from ..documentation import (
     OllamaSettings,
     collect_chapter_files,
 )
+from ..ollama import DEFAULT_ENDPOINT, PROMPT_TEMPLATE
 from ..splitting import TranscriptSplitter
-from .common import DocumentationWorker, QtLogHandler, SplitWorker
+from .common import DocumentationWorker, ModelListWorker, QtLogHandler, SplitWorker
 
 DEFAULT_MODEL = "llama3"
 
@@ -58,11 +60,14 @@ class MainWindow(QMainWindow):
         self._output_dir: Path = Path.cwd() / "chapters"
         self._split_thread: Optional[QThread] = None
         self._doc_thread: Optional[QThread] = None
+        self._model_thread: Optional[QThread] = None
+        self._available_models: list[str] = []
 
         self._build_ui()
         self._connect_signals()
         self._refresh_chapter_list()
         self._update_doc_controls()
+        self._refresh_models()
 
     # UI -----------------------------------------------------------------
     def _build_ui(self) -> None:
@@ -101,9 +106,25 @@ class MainWindow(QMainWindow):
         self.enable_ollama = QCheckBox("Enable documentation generation with Ollama")
         ollama_layout.addWidget(self.enable_ollama)
 
+        self.ollama_tabs = QTabWidget()
+        ollama_layout.addWidget(self.ollama_tabs)
+
+        settings_tab = QWidget()
+        settings_layout = QVBoxLayout(settings_tab)
         form = QFormLayout()
-        self.model_edit = QLineEdit(DEFAULT_MODEL)
-        form.addRow("Model", self.model_edit)
+
+        self.model_combo = QComboBox()
+        self.model_combo.setEditable(True)
+        self.model_combo.setInsertPolicy(QComboBox.NoInsert)
+        self.model_combo.setPlaceholderText("Select or type a model…")
+        self.model_combo.setCurrentText(DEFAULT_MODEL)
+        self.refresh_models_btn = QPushButton("Refresh models")
+        model_row = QHBoxLayout()
+        model_row.addWidget(self.model_combo, stretch=1)
+        model_row.addWidget(self.refresh_models_btn)
+        model_widget = QWidget()
+        model_widget.setLayout(model_row)
+        form.addRow("Model", model_widget)
 
         self.temperature_spin = QDoubleSpinBox()
         self.temperature_spin.setRange(0.0, 2.0)
@@ -124,7 +145,21 @@ class MainWindow(QMainWindow):
         self.max_tokens_spin.setValue(800)
         form.addRow("Max tokens", self.max_tokens_spin)
 
-        ollama_layout.addLayout(form)
+        settings_layout.addLayout(form)
+        settings_layout.addStretch(1)
+
+        prompt_tab = QWidget()
+        prompt_layout = QVBoxLayout(prompt_tab)
+        self.prompt_edit = QTextEdit()
+        self.prompt_edit.setAcceptRichText(False)
+        self.prompt_edit.setPlainText(PROMPT_TEMPLATE)
+        prompt_layout.addWidget(QLabel("Prompt template"))
+        prompt_layout.addWidget(self.prompt_edit, stretch=1)
+        self.reset_prompt_btn = QPushButton("Reset to default prompt")
+        prompt_layout.addWidget(self.reset_prompt_btn, alignment=Qt.AlignRight)
+
+        self.ollama_tabs.addTab(settings_tab, "Model & Parameters")
+        self.ollama_tabs.addTab(prompt_tab, "Prompt Ingestion")
 
         self.chapter_list = QListWidget()
         self.chapter_list.setSelectionMode(QAbstractItemView.MultiSelection)
@@ -153,10 +188,12 @@ class MainWindow(QMainWindow):
         self.clear_log_btn.clicked.connect(self.log_area.clear)
         self.save_log_btn.clicked.connect(self._save_log)
         self.enable_ollama.stateChanged.connect(self._update_doc_controls)
-        self.model_edit.textChanged.connect(self._update_doc_controls)
+        self.model_combo.currentTextChanged.connect(self._update_doc_controls)
         self.chapter_list.itemSelectionChanged.connect(self._update_doc_controls)
         self.select_all_btn.clicked.connect(self._select_all)
         self.generate_docs_btn.clicked.connect(self._start_documentation)
+        self.refresh_models_btn.clicked.connect(self._refresh_models)
+        self.reset_prompt_btn.clicked.connect(self._reset_prompt)
 
     # Drag & drop --------------------------------------------------------
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
@@ -276,9 +313,76 @@ class MainWindow(QMainWindow):
                 selected.append(chapter)
         return selected
 
+    def _reset_prompt(self) -> None:
+        self.prompt_edit.setPlainText(PROMPT_TEMPLATE)
+        self.logger.info("Prompt template reset to default")
+
+    def _refresh_models(self) -> None:
+        if self._model_thread and self._model_thread.isRunning():
+            return
+        self.logger.info("Refreshing Ollama models…")
+        self.refresh_models_btn.setEnabled(False)
+        self.refresh_models_btn.setText("Refreshing…")
+
+        worker = ModelListWorker(DEFAULT_ENDPOINT)
+        self._model_thread = QThread()
+        worker.moveToThread(self._model_thread)
+        self._model_thread.started.connect(worker.run)
+
+        def handle_finished(models: list[str], *, worker: ModelListWorker = worker) -> None:
+            self._on_models_loaded(models)
+            self._finalize_model_refresh(worker)
+
+        def handle_failed(message: str, *, worker: ModelListWorker = worker) -> None:
+            self._on_models_failed(message)
+            self._finalize_model_refresh(worker)
+
+        worker.finished.connect(handle_finished)
+        worker.failed.connect(handle_failed)
+        self._model_thread.start()
+
+    def _on_models_loaded(self, models: list[str]) -> None:
+        self._available_models = models
+        if models:
+            self.logger.info("Discovered %d Ollama model(s)", len(models))
+        else:
+            self.logger.warning("No Ollama models were reported by the local instance")
+        self._apply_model_choices(models)
+
+    def _on_models_failed(self, message: str) -> None:
+        self.logger.error("Failed to query Ollama models: %s", message)
+
+    def _apply_model_choices(self, models: list[str]) -> None:
+        current_text = self.model_combo.currentText().strip()
+        self.model_combo.blockSignals(True)
+        self.model_combo.clear()
+        if models:
+            self.model_combo.addItems(models)
+        if current_text:
+            index = self.model_combo.findText(current_text)
+            if index >= 0:
+                self.model_combo.setCurrentIndex(index)
+            else:
+                self.model_combo.setEditText(current_text)
+        elif models:
+            self.model_combo.setCurrentIndex(0)
+        else:
+            self.model_combo.setEditText(DEFAULT_MODEL)
+        self.model_combo.blockSignals(False)
+        self._update_doc_controls()
+
+    def _finalize_model_refresh(self, worker: ModelListWorker) -> None:
+        if self._model_thread:
+            self._model_thread.quit()
+            self._model_thread.wait()
+            self._model_thread = None
+        worker.deleteLater()
+        self.refresh_models_btn.setText("Refresh models")
+        self._update_doc_controls()
+
     def _gather_settings(self) -> OllamaSettings:
         return OllamaSettings(
-            model=self.model_edit.text().strip(),
+            model=self.model_combo.currentText().strip(),
             temperature=float(self.temperature_spin.value()),
             top_p=float(self.top_p_spin.value()),
             max_tokens=int(self.max_tokens_spin.value()),
@@ -286,17 +390,21 @@ class MainWindow(QMainWindow):
 
     def _update_doc_controls(self) -> None:
         enabled = self.enable_ollama.isChecked()
-        has_model = bool(self.model_edit.text().strip())
+        has_model = bool(self.model_combo.currentText().strip())
         selected = bool(self._selected_chapters())
         has_chapters = self.chapter_list.count() > 0
 
         for widget in (
-            self.model_edit,
+            self.model_combo,
             self.temperature_spin,
             self.top_p_spin,
             self.max_tokens_spin,
             self.chapter_list,
             self.select_all_btn,
+            self.refresh_models_btn,
+            self.prompt_edit,
+            self.reset_prompt_btn,
+            self.ollama_tabs,
         ):
             widget.setEnabled(enabled)
 
@@ -308,6 +416,9 @@ class MainWindow(QMainWindow):
         else:
             self.generate_docs_btn.setToolTip("")
 
+        if self._model_thread and self._model_thread.isRunning():
+            self.refresh_models_btn.setEnabled(False)
+
     def _start_documentation(self) -> None:
         if not self.enable_ollama.isChecked():
             return
@@ -316,7 +427,12 @@ class MainWindow(QMainWindow):
             self.logger.warning("No chapters selected for documentation")
             return
         settings = self._gather_settings()
-        request = DocumentGenerationRequest(chapters=chapters, settings=settings)
+        prompt_template = self.prompt_edit.toPlainText().strip() or PROMPT_TEMPLATE
+        request = DocumentGenerationRequest(
+            chapters=chapters,
+            settings=settings,
+            prompt_template=prompt_template,
+        )
         self.logger.info(
             "Generating documentation with %s for %d chapters…",
             settings.model,
@@ -356,7 +472,7 @@ class MainWindow(QMainWindow):
 
     # Qt lifecycle -------------------------------------------------------
     def closeEvent(self, event) -> None:  # noqa: N802
-        for thread in (self._split_thread, self._doc_thread):
+        for thread in (self._split_thread, self._doc_thread, self._model_thread):
             if thread and thread.isRunning():
                 thread.quit()
                 thread.wait(500)

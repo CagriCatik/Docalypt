@@ -4,15 +4,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
 
-from .ollama import OllamaClient, OllamaError, OllamaSettings, build_prompt
+from .ollama import (
+    OllamaClient,
+    OllamaError,
+    OllamaSettings,
+    PROMPT_TEMPLATE,
+    build_prompt,
+)
 
 
 @dataclass(slots=True)
 class DocumentGenerationRequest:
     chapters: Sequence[Path]
     settings: OllamaSettings
+    prompt_template: str | None = None
 
 
 @dataclass(slots=True)
@@ -46,7 +53,8 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
     for chapter in request.chapters:
         try:
             chapter_text = chapter.read_text(encoding="utf-8")
-            prompt = build_prompt(chapter.name, chapter_text)
+            template = request.prompt_template or PROMPT_TEMPLATE
+            prompt = build_prompt(chapter.name, chapter_text, template)
             markdown = client.generate(prompt)
             destination = chapter.with_name(f"{chapter.stem}.docs.md")
             destination.write_text(markdown, encoding="utf-8")

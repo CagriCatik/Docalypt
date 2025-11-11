@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import List
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -43,8 +43,16 @@ Guidelines:
 """
 
 
-def build_prompt(chapter_name: str, chapter_content: str) -> str:
-    return PROMPT_TEMPLATE.format(
+def build_prompt(
+    chapter_name: str,
+    chapter_content: str,
+    template: str = PROMPT_TEMPLATE,
+) -> str:
+    if "{chapter_name}" not in template or "{chapter_content}" not in template:
+        raise OllamaError(
+            "Prompt template must include {chapter_name} and {chapter_content} placeholders"
+        )
+    return template.format(
         chapter_name=chapter_name,
         chapter_content=chapter_content.strip(),
     )
@@ -99,10 +107,38 @@ class OllamaClient:
             raise OllamaError("Invalid response from Ollama") from exc
 
 
+def list_local_models(endpoint: str = DEFAULT_ENDPOINT) -> list[str]:
+    """Return the list of models installed on the local Ollama instance."""
+
+    request = Request(
+        url=f"{endpoint.rstrip('/')}/api/tags",
+        headers={"Accept": "application/json"},
+        method="GET",
+    )
+    try:
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError) as exc:
+        raise OllamaError(str(exc)) from exc
+    except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+        raise OllamaError("Invalid response from Ollama") from exc
+
+    models: List[str] = []
+    for model in payload.get("models", []):
+        name = model.get("model") or model.get("name")
+        if isinstance(name, str) and name.strip():
+            models.append(name.strip())
+
+    unique_sorted = sorted(dict.fromkeys(models))
+    return unique_sorted
+
+
 __all__ = [
+    "DEFAULT_ENDPOINT",
     "OllamaClient",
     "OllamaError",
     "OllamaSettings",
+    "PROMPT_TEMPLATE",
     "build_prompt",
-    "DEFAULT_ENDPOINT",
+    "list_local_models",
 ]

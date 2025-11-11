@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
 
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import QTextEdit
@@ -14,6 +14,7 @@ from ..documentation import (
     DocumentGenerationResult,
     generate_documentation,
 )
+from ..ollama import OllamaError, list_local_models
 from ..splitting import TranscriptSplitter
 
 
@@ -69,8 +70,27 @@ class DocumentationWorker(QObject):
         self.finished.emit(result)
 
 
+class ModelListWorker(QObject):
+    finished = Signal(list)
+    failed = Signal(str)
+
+    def __init__(self, endpoint: str):
+        super().__init__()
+        self.endpoint = endpoint
+
+    def run(self) -> None:
+        try:
+            models = list_local_models(self.endpoint)
+            self.finished.emit(models)
+        except OllamaError as exc:
+            self.failed.emit(str(exc))
+        except Exception as exc:  # pragma: no cover - safety net
+            self.failed.emit(str(exc))
+
+
 __all__ = [
     "DocumentationWorker",
+    "ModelListWorker",
     "QtLogHandler",
     "SplitWorker",
 ]

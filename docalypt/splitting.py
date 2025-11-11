@@ -7,6 +7,11 @@ from pathlib import Path
 import re
 from typing import Callable, Iterable, List, Optional, Sequence
 
+try:  # Python <3.11 compatibility for typing.Pattern
+    from re import Pattern  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover - fallback for older versions
+    Pattern = type(re.compile(""))
+
 from .config import AppConfig, load_config
 
 ProgressCallback = Callable[[int, int], None]
@@ -46,6 +51,8 @@ class TranscriptSplitter:
     pre_split_hooks: Iterable[TextHook] = field(default_factory=list)
     post_split_hooks: Iterable[FileHook] = field(default_factory=list)
     config: AppConfig = field(init=False)
+    _marker_pattern: Pattern[str] = field(init=False)
+    _chapter_count: int = field(init=False, default=0)
 
     def __post_init__(self) -> None:
         self.config = load_config()
@@ -56,7 +63,6 @@ class TranscriptSplitter:
         )
         pattern = self.marker_regex or self.config.marker_regex
         self._marker_pattern = re.compile(pattern)
-        self._chapter_count = 0
 
     # Public API ---------------------------------------------------------
     def split(self, export_html: bool = False) -> int:
