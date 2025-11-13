@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional
 
@@ -20,7 +21,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..documentation import DocumentGenerationRequest, OllamaSettings, collect_chapter_files
+from ..documentation import DocumentGenerationRequest, collect_chapter_files
+from ..llm import settings_from_env
 from ..splitting import TranscriptSplitter
 from .common import DocumentationWorker, QtLogHandler, SplitWorker
 
@@ -36,12 +38,14 @@ class CompactWindow(QWidget):
         self.logger = logging.getLogger("docalypt.gui.compact")
         self.logger.setLevel(logging.INFO)
 
+        self._llm_defaults = settings_from_env()
         self._input: Optional[Path] = None
         self._output_dir: Path = Path.cwd() / "chapters"
         self._split_thread: Optional[QThread] = None
         self._doc_thread: Optional[QThread] = None
 
         self._build_ui()
+        self._apply_defaults()
         self._connect_signals()
         self._update_controls()
 
@@ -64,7 +68,9 @@ class CompactWindow(QWidget):
 
         self.split_btn = QPushButton("Split transcript")
 
-        self.enable_ollama = QCheckBox("Generate documentation with Ollama")
+        self.enable_ollama = QCheckBox(
+            "Generate documentation with configured LLM"
+        )
         self.model_edit = QLineEdit(DEFAULT_MODEL)
         self.model_edit.setPlaceholderText("Model name (e.g. llama3)")
 
@@ -84,6 +90,10 @@ class CompactWindow(QWidget):
         handler = QtLogHandler(self.log_area)
         handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", "%H:%M:%S"))
         self.logger.addHandler(handler)
+
+    def _apply_defaults(self) -> None:
+        model = self._llm_defaults.model or DEFAULT_MODEL
+        self.model_edit.setText(model)
 
     def _connect_signals(self) -> None:
         self.input_btn.clicked.connect(self._select_input)
@@ -156,9 +166,15 @@ class CompactWindow(QWidget):
             self.logger.warning("No chapters found for documentation")
             return
 
-        settings = OllamaSettings(model=model)
+        settings = replace(self._llm_defaults, model=model)
         request = DocumentGenerationRequest(chapters=chapters, settings=settings)
-        self.logger.info("Generating documentation with %s for %d chapters", model, len(chapters))
+        provider = (self._llm_defaults.provider or "ollama").capitalize()
+        self.logger.info(
+            "Generating documentation with %s (%s) for %d chapters",
+            model,
+            provider,
+            len(chapters),
+        )
 
         self.enable_ollama.setEnabled(False)
         self.model_edit.setEnabled(False)
@@ -190,11 +206,11 @@ class CompactWindow(QWidget):
         enabled = self.enable_ollama.isChecked()
         self.model_edit.setEnabled(enabled)
         if enabled and not self.model_edit.text().strip():
-            self.split_btn.setToolTip("Provide an Ollama model name or disable generation")
+            self.split_btn.setToolTip("Provide a model name or disable generation")
         else:
             self.split_btn.setToolTip("")
 
-    def closeEvent(self, event) -> None:  # noqa: N802
+    def closeEvent(self, event) -> None:  
         for thread in (self._split_thread, self._doc_thread):
             if thread and thread.isRunning():
                 thread.quit()

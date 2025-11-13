@@ -6,12 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from .ollama import (
-    OllamaClient,
-    OllamaError,
-    OllamaSettings,
+from .llm import (
+    LLMError,
+    LLMSettings,
     PROMPT_TEMPLATE,
     build_prompt,
+    create_client,
+    OllamaSettings,
 )
 
 
@@ -21,7 +22,7 @@ DOCUMENTATION_SUBDIR = "documentation"
 @dataclass(slots=True)
 class DocumentGenerationRequest:
     chapters: Sequence[Path]
-    settings: OllamaSettings
+    settings: LLMSettings
     prompt_template: str | None = None
     destination_dirname: str = DOCUMENTATION_SUBDIR
 
@@ -48,9 +49,9 @@ def collect_chapter_files(output_dir: Path) -> list[Path]:
 
 
 def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenerationResult:
-    """Generate documentation for provided chapters using Ollama."""
+    """Generate documentation for provided chapters using the configured LLM."""
 
-    client = OllamaClient(settings=request.settings)
+    client = create_client(request.settings)
     written: list[tuple[Path, Path]] = []
     failures: list[tuple[Path, str]] = []
 
@@ -68,7 +69,7 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
             destination = destination_dir / f"{chapter.stem}.docs.md"
             destination.write_text(markdown, encoding="utf-8")
             written.append((chapter, destination))
-        except OllamaError as exc:
+        except LLMError as exc:
             failures.append((chapter, str(exc)))
         except Exception as exc:  # pragma: no cover - safety net
             failures.append((chapter, str(exc)))
@@ -79,6 +80,7 @@ __all__ = [
     "DOCUMENTATION_SUBDIR",
     "DocumentGenerationRequest",
     "DocumentGenerationResult",
+    "LLMSettings",
     "OllamaSettings",
     "collect_chapter_files",
     "generate_documentation",

@@ -22,7 +22,9 @@ wheelhouse/
 
 # Local configuration
 *.env
+!.env
 .env.*
+!.env.example
 *.ini
 *.cfg
 *.toml.local

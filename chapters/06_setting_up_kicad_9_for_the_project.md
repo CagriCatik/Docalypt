@@ -1,7 +1,5 @@
 # Setting Up KiCad 9 for the Project
 
-
-
 for the requirements of this particular video recording you can run these two versions or as many versions as you like really in parallel no problem at all as to how you organize your kick it instances all right so as we've learned already in the previous few segments of this video I've already taken a bit of time through research and uh preparation for this project and worked out my bill of materials and in a realistic situation where you're just starting fresh with a new project this bom is probably not going to be the final one
 
 you'll be working through the details as you're working through the project but in my case uh since I've already rehearsed this video and of pretty much completed the entire process a couple of times prior to actually recording this video I have a pretty good idea of the components that are going to be in it and so I've got the benefit of the build of material being pretty much finalized just keep in mind in real life if you were working on this project for the very first time just like I did when I went through it for the very first time

@@ -14,7 +14,7 @@ from ..documentation import (
     DocumentGenerationResult,
     generate_documentation,
 )
-from ..ollama import OllamaError, list_local_models
+from ..llm import LLMError, LLMSettings, list_models
 from ..splitting import TranscriptSplitter
 
 
@@ -74,15 +74,15 @@ class ModelListWorker(QObject):
     finished = Signal(list)
     failed = Signal(str)
 
-    def __init__(self, endpoint: str):
+    def __init__(self, settings: LLMSettings):
         super().__init__()
-        self.endpoint = endpoint
+        self.settings = settings
 
     def run(self) -> None:
         try:
-            models = list_local_models(self.endpoint)
+            models = list_models(self.settings)
             self.finished.emit(models)
-        except OllamaError as exc:
+        except LLMError as exc:
             self.failed.emit(str(exc))
         except Exception as exc:  # pragma: no cover - safety net
             self.failed.emit(str(exc))

@@ -1,7 +1,5 @@
 # Design for Manufacturing (DFM) Checks
 
-
-
 to save next up I'm going to do design for manufacturing checks these are the checks that help make sure that the board is fit for manufacturing and there's no issues in it that may delay or maybe even make impossible manufacturing PCB design itself is fine as far as the electrical design rules checks are concern concerned however that doesn't mean that it can be manufactured that's where the dfm check comes in for the dfm check I'm going to use a free tool that is available from next PCB that you can use it both online
 
 or as a Windows application next BCB has a version of the dfm Checker as a plug-in that I've installed and you can see it right here but the problem is that this plugin doesn't seem to be working properly with the release candidate 2 version of kick at 9 it doesn't actually work so I'm not going to bother with it at all I'm just going to do all of the dfm checks using the Windows application the thing to remember is that the Windows application is more capable compared to the kiat plug-in but the nice thing about the Ki

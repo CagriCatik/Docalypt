@@ -1,7 +1,5 @@
 # Adding Silkscreen and Final Touches
 
-
-
 some room up here by removing the mounting hole so again pick up the text tool and the first one is going to be charging power okay and it's always a challenge to make this fit so let's make this 90° so that I can mount it in like this and it's done and I'll continue with the rest for example I'm going to go up here and add some text for the roll of these pens I use the same geometry for the text so this first one is going to be G and D I'm going I'm going to continue along the same way but to save us all bit of
 
 time and especially you I'm not going to record this whole process and I'm going to come back in your time in just a few seconds and my time is going to be probably around 30 to 40 minutes when I would have completed the sil screen and that's it with the silk screen let's have a look I'm going to disable some of these layers take a better look at the sil screen layer so I've got all the borders between the different top circuits got a couple of logos as well there's always room for the tech Expos logo and the kyat in the back silk
@@ -36,7 +34,7 @@ been configured and next one is u4 that is also misconfigured so let's look for 
 
 hit okay save and let's check again model is missing zero however if we have a look at the 3D viewer you'll see there's actually some models that don't have configuration so let's add them so these are all the models that I have collected at the beginning of the project and now I'm going to actually assign them to the footprints let's start with a connector down here this one the model is in the project directory so let's navigate to The Working project directory and in here is the libraries 3D models and then what I'm looking for is the B2 pH smm4
 
-let oriented so rotate back and forth there's a bit of playing around with this until I get the right one that's the one next I'll do the USB port so this one is the SS [Music] 5240 okay perfect let's take a look at what the port looks like now all right yeah making progress let's continue with the two buttons the model is us lpt this one right here that's a models it won't fit exactly though so I'm going to need to fine tune it and I'm going to copy this because I've got another button so I'm just going to copy that
+let oriented so rotate back and forth there's a bit of playing around with this until I get the right one that's the one next I'll do the USB port so this one is the SS  5240 okay perfect let's take a look at what the port looks like now all right yeah making progress let's continue with the two buttons the model is us lpt this one right here that's a models it won't fit exactly though so I'm going to need to fine tune it and I'm going to copy this because I've got another button so I'm just going to copy that
 
 and assign it to the other button and set the same Transformations okay next up is the SD card so the model for that is the GSD 0 model in this directory GSD 0 yeah that's it and that happens to fit perfectly and I'm going to go up and sort out the model for the esp32 and the model for this is this one done let's take a pause and have a look yeah this is looking really nice not much more to go so the U6 Q 1 and VR1 left to do and the B me 280 up here You2 so the light sensor that is the tem t6000 you can see the pad configuration in the bottom now
 
