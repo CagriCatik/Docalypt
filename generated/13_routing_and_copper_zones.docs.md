@@ -1,4 +1,4 @@
-# 13 – Routing and Copper Zones  
+# Routing and Copper Zones  
 
 ## 1. Overview  
 

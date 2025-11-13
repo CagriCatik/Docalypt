@@ -1,6 +1,7 @@
-# 02 Component Placement and Design Challenges  
+# Component Placement and Design Challenges  
 
 ## Overview  
+
 The board is a four‑layer IoT development platform built around an ESP32 MCU. It integrates non‑volatile storage (SD‑card slot and flash memory), environmental sensing (BME280, ambient‑light sensor, microphone), a USB‑C receptacle for power and data, user‑interface buttons, a full‑featured USB‑to‑UART bridge, a linear regulator, Li‑Po battery management, and a set of breakout headers for external peripherals such as OLED displays.  
 
 Designing a compact, reliable board that meets both functional and manufacturability goals requires careful allocation of these diverse blocks, a disciplined stack‑up, and adherence to signal‑integrity, power‑distribution, and DFM (Design‑for‑Manufacturing) best practices. The following sections detail the key PCB‑related decisions and constraints that shape the final layout.
@@ -50,6 +51,7 @@ A four‑layer stack is chosen as a cost‑effective compromise that still provi
 ## Component Placement Strategy  
 
 ### 1. High‑Speed USB‑C Interface  
+
 * The USB‑C receptacle is placed on the board edge to facilitate cable access and to keep the differential pair short.  
 * The USB‑to‑UART bridge (often a CP2102/CH340 family) is positioned adjacent to the connector, allowing the DP/DM traces to be routed as a tightly coupled differential pair with a target impedance of 90 Ω (controlled‑impedance).  
 * Length matching between DP and DM is kept within a few mils, and a pair of ground stitching vias flank the route to maintain return continuity.  
@@ -57,6 +59,7 @@ A four‑layer stack is chosen as a cost‑effective compromise that still provi
 [Verified] The transcript mentions a USB‑C connector used for power and data and a serial‑communication IC that “helps to manage the USB and the serial communications of the board.”
 
 ### 2. Power Regulation and Battery Management  
+
 * The linear regulator and Li‑Po charging IC are clustered near the board centre to minimise voltage drop to the MCU and sensors.  
 * Input and output decoupling capacitors are placed as close as possible to each regulator pin (within 0.5 mm) to suppress high‑frequency noise.  
 * The battery connector is routed to the charging IC with a short, wide trace to handle charging currents, and a dedicated thermal pad (if applicable) is kept clear of high‑current paths.  
@@ -64,6 +67,7 @@ A four‑layer stack is chosen as a cost‑effective compromise that still provi
 [Inference] Grouping power‑related ICs reduces the length of high‑current paths and eases thermal management.
 
 ### 3. Sensor and Memory Modules  
+
 * The BME280, ambient‑light sensor, microphone, SD‑card slot, and flash memory are arranged on the same side of the board, grouped by bus type (I²C for BME280, ADC for light/mic, SPI for SD/flash).  
 * Analog sensors (light, microphone) are placed away from noisy digital switching nodes (e.g., regulator switching, USB‑C) and are shielded by the ground plane to improve signal‑to‑noise ratio.  
 * The SD‑card and flash memory share the same SPI bus; they are placed close to the MCU’s SPI pins to keep trace lengths short and to reduce skew.  
@@ -71,6 +75,7 @@ A four‑layer stack is chosen as a cost‑effective compromise that still provi
 [Inference] Proximity to the MCU and separation of analog from digital domains are standard layout heuristics for mixed‑signal boards.
 
 ### 4. User Interface Buttons and Headers  
+
 * The enable and boot buttons are positioned near the MCU’s GPIO pins they control, with minimal trace length to avoid debounce‑induced ringing.  
 * Breakout headers are placed on the board perimeter to provide easy access for external peripherals (e.g., OLED display). The header pins are staggered to accommodate standard 0.1 in pitch connectors and to leave clearance for solder‑mask and silkscreen.  
 

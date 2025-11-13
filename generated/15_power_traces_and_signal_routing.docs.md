@@ -1,4 +1,4 @@
-# 15. Power Traces and Signal Routing  
+# Power Traces and Signal Routing  
 
 *This section documents the routing methodology, power‑net implementation, and verification workflow used for the board. It captures the key decisions, constraints, and best‑practice guidelines that emerged during layout.*
 
@@ -172,6 +172,6 @@ flowchart TD
 
 *The flowchart captures the logical progression from net‑class definition to final data‑output, emphasizing the iterative DRC‑driven refinement.*  
 
----  
+---
 
 **End of Chapter 15** – This documentation should serve as a reference for future revisions and for other designs that share similar mixed‑signal, high‑speed requirements.

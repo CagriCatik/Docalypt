@@ -1,4 +1,4 @@
-# 19 – 3D Model Configuration & Visualization  
+# 3D Model Configuration & Visualization  
 
 ## 1. Overview  
 

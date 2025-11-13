@@ -1,4 +1,4 @@
-# 09 — Adding Sensors & User‑Interface Components  
+# Adding Sensors & User‑Interface Components  
 
 This section documents the schematic‑level decisions, PCB‑layout considerations, and best‑practice guidelines used when integrating environmental sensors, an analog light sensor, a microphone pre‑amplifier, and the user‑interface circuitry (buttons, transistors, and breakout connectors) with an ESP‑32‑S3 MCU.  
 
@@ -13,6 +13,7 @@ This section documents the schematic‑level decisions, PCB‑layout considerati
 | **Decoupling Capacitors** | Suppress supply noise and provide local charge. | 0.1 µF ceramic caps are placed as close as possible to each IC power pin (e.g., C50 for the BME280, C18 for the microphone pre‑amp). The same footprint/value is reused to maintain consistency. `[Verified]` |
 
 **Best practice:**  
+
 - Place a decoupling capacitor within 1 mm of each power pin.  
 - Group caps of the same value and footprint to simplify BOM generation.  
 

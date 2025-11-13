@@ -1,4 +1,4 @@
-# 11 – Setting Up the PCB Layout Editor  
+# Setting Up the PCB Layout Editor  
 
 *This chapter documents the complete workflow for preparing a KiCad (or equivalent) PCB layout editor before routing begins. It covers layer‑stack definition, design‑rule configuration, net‑class management, footprint association, and component placement strategy. All recommendations are derived from proven PCB‑engineering practice and are aligned with typical fab house capabilities (e.g., Next PCB).*
 

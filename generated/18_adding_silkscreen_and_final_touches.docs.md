@@ -1,4 +1,4 @@
-# 18 – Adding Silkscreen and Final Touches  
+# Adding Silkscreen and Final Touches  
 
 ## Overview  
 
@@ -149,7 +149,7 @@ flowchart TD
 
 *The flowchart captures the iterative nature of the finalisation stage: silkscreen, 3‑D model assignment, verification, and hand‑off.*  
 
----  
+---
 
 ### Key Takeaways  
 

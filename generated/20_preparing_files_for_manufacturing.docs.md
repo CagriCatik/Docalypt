@@ -39,12 +39,15 @@ All files should be exported using the **same version of the PCB tool** that was
 ## 3. Design‑for‑Manufacturability (DFM) Considerations  
 
 ### 3.1 Layer Count vs. Cost  
+
 The project uses a **four‑layer stack‑up** to separate power, ground, and signal planes, which improves signal integrity and reduces EMI. Four‑layer boards are more expensive than two‑layer alternatives, but the trade‑off yields a compact IoT form factor and reliable high‑speed routing. [Inference]
 
 ### 3.2 Copper‑to‑Edge Clearance & Creepage  
+
 For safety‑critical or high‑voltage sections, maintain sufficient **creepage** (air gap) and **clearance** (conductor‑to‑conductor) per the relevant standards (e.g., IEC 60950‑1). KiCad’s DRC can enforce these rules automatically.
 
 ### 3.3 Via Types  
+
 - **Through‑hole vias** are the default and cheapest.  
 - **Blind/buried vias** reduce routing congestion on outer layers but increase cost and fabrication complexity.  
 - **Microvias** (≤ 150 µm) are required for very fine pitch or high‑density interconnect (HDI) designs; they demand a specialized fab.  
@@ -52,9 +55,11 @@ For safety‑critical or high‑voltage sections, maintain sufficient **creepage
 Select the via type based on the required density and the target cost envelope. [Inference]
 
 ### 3.4 Component Density & Assembly  
+
 Fine‑pitch QFN, BGA, or CSP packages improve board density but demand **accurate centroid data** and **tight solder‑mask clearance**. Verify that the chosen assembly house can handle the smallest pitch on the board.
 
 ### 3.5 Controlled Impedance  
+
 If the IoT board includes USB 2.0, Ethernet, or RF transceivers, define the **characteristic impedance** (e.g., 90 Ω differential) in the stack‑up and route the corresponding traces with the appropriate width/spacing. KiCad’s impedance calculator can generate the required geometry given the dielectric stack‑up. [Speculation]
 
 ---

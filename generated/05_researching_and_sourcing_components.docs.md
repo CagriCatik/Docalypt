@@ -1,4 +1,4 @@
-# 05 – Researching and Sourcing Components  
+# Researching and Sourcing Components  
 
 *This section documents the systematic approach used to research, select, and organise every part that populates the ESP‑32‑based IoT board. It captures the engineering rationale, the constraints that shaped the design, and the best‑practice workflow that keeps the schematic and layout clean, reproducible, and manufacturable.*
 
@@ -40,24 +40,29 @@ flowchart LR
 ## 2. Component Selection Criteria  
 
 ### 2.1 MCU – ESP‑32  
+
 * **Processing & Connectivity** – Dual‑core architecture provides ample headroom for real‑time sensor fusion and on‑board AI inference. Integrated 2.4 GHz Wi‑Fi and BLE remove the need for external transceivers.  
 * **Antenna Integration** – The ESP‑32’s on‑board PCB antenna imposes strict placement rules (clearance from copper, keep‑out from metal enclosures). The chosen footprint follows the manufacturer‑recommended “Position 3” layout, combined with a secondary placement that keeps the antenna recessed to protect it inside a project box. `[Inference]`  
 
 ### 2.2 Sensors  
+
 * **BME280** – Provides temperature, pressure, and humidity in a single package; requires a low‑noise I²C pull‑up network and a decoupling capacitor close to the VDD pin.  
 * **MEMS Microphone** – Needs an AC‑coupling capacitor and a bias resistor; placed away from the RF antenna to avoid desensitising the Wi‑Fi front‑end. `[Inference]`  
 * **Light Sensor** – Simple photodiode or phototransistor interface; also kept clear of high‑frequency traces.  
 
 ### 2.3 Power Management  
+
 * **USB‑C 3.0 Receptacle** – Chosen for its robust mechanical profile and 5 V VBUS capability. The initial connector footprint proved too large for the board edge, prompting a redesign after a DRC run flagged clearance violations. `[Verified]`  
 * **Battery Connector** – A dedicated 2‑pin JST‑PH plug with reverse‑polarity protection diode and a fuse for over‑current safety.  
 * **Regulation** – A buck‑boost converter supplies a stable 3.3 V rail to the ESP‑32 and peripherals; the converter’s recommended layout (short high‑current loops, copper pours for input/output caps) is followed verbatim from the datasheet.  
 
 ### 2.4 Storage  
+
 * **Micro‑SD Card Module** – Offers high‑capacity, removable logging; communicates via SPI. The module is placed on the board periphery to simplify board‑to‑card insertion and to keep the SD‑card traces short.  
 * **On‑Board Flash (8 Mbit SPI)** – Stores firmware, calibration data, and configuration files. It complements the SD card by providing fast, non‑volatile storage that survives power cycles without user intervention.  
 
 ### 2.5 User Interface & Connectors  
+
 * **Tactile Buttons** – “Boot” and “Enable” buttons are grouped near the ESP‑32’s reset pins to minimise trace length and debounce circuitry.  
 * **Status LEDs** – Placed on the board edge for easy visual inspection; each LED is driven through a current‑limiting resistor sized per the LED’s forward voltage.  
 

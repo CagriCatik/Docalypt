@@ -85,13 +85,9 @@ flowchart TD
 ## 4. Best‑Practice Recommendations for the Final Pass  
 
 1. **Maintain Consistent Design Intent** – Any geometry change (e.g., widening a trace) should be reflected in the design documentation and, if needed, in the bill of materials (e.g., updated current rating).  
-
 2. **Document All DFM Fixes** – Keep a change‑log that records which nets were altered, why the change was made, and the impact on electrical performance. This aids downstream verification and future design revisions.  
-
 3. **Validate Critical Nets After Modification** – For high‑speed or high‑current signals, re‑run **Signal Integrity (SI)** simulations or **Current Carrying Capacity** checks after any geometry change to ensure that performance margins are still met.  
-
 4. **Perform a “Design Freeze” Review** – Once DFM passes, lock the layout files, generate the final Gerber set, and perform a **Design for Assembly (DFA)** visual inspection (component clearances, solder‑mask bridges, polarity checks).  
-
 5. **Engage the Fabricator Early** – Share the DFM report and any special requirements (e.g., controlled impedance, specific copper thickness) with the chosen fab to confirm that the board can be produced within the target cost and lead‑time.  
 
 ---

@@ -1,4 +1,4 @@
-# 07 – Creating the Schematic  
+# Creating the Schematic  
 
 This section documents the systematic approach used to build the schematic for the **ESP‑32 sensor board**. It captures the architectural decisions, component‑selection strategy, net‑naming conventions, and the design‑for‑manufacturability (DFM) practices that were applied. The goal is to provide a reproducible workflow that can be followed for similar mixed‑signal, low‑power designs.
 

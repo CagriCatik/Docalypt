@@ -1,4 +1,4 @@
-# 06 – Setting Up KiCad 9 for the Project  
+# Setting Up KiCad 9 for the Project  
 
 This section documents the complete workflow for preparing a KiCad 9 project that targets an ESP‑32‑based board. It captures the decisions, constraints, and best‑practice recommendations that arise when moving from a raw bill‑of‑materials (BOM) to a fully‑configured KiCad environment ready for schematic capture and PCB layout.
 

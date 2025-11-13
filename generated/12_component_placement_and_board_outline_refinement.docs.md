@@ -1,4 +1,4 @@
-# 12 – Component Placement & Board‑Outline Refinement  
+# Component Placement & Board‑Outline Refinement  
 
 *This section documents the systematic approach used to place components, define the board outline, and prepare the layout for reliable routing. All recommendations follow proven PCB‑design practice and are directly derived from the design workflow described above.*
 
@@ -132,6 +132,6 @@ The initial placement is deliberately “approximate”; exact coordinates are r
 
 * Texas Instruments, **High‑Speed PCB Layout Guidelines**, 2023 – a comprehensive guide covering transmission‑line effects, return‑current paths, and crosstalk mitigation. (Link provided in the original video description.)  
 
----  
+---
 
 *End of Chapter 12 – Component Placement & Board‑Outline Refinement.*

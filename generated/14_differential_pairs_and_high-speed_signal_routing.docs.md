@@ -1,4 +1,4 @@
-# 14 – Differential Pairs and High‑Speed Signal Routing  
+# Differential Pairs and High‑Speed Signal Routing  
 
 ## 1. Introduction  
 

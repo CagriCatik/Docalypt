@@ -1,4 +1,4 @@
-# 04  Operational Requirements and Component Selection  
+# Operational Requirements and Component Selection  
 
 ---
 

@@ -1,4 +1,4 @@
-# 01 Overview of the IoT PCB Design  
+# Overview of the IoT PCB Design  
 
 ## 1. Design Objectives  
 
