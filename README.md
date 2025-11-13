@@ -9,6 +9,8 @@
 
 > **Docalypt** automates the conversion of long-form Markdown transcripts into structured, timestamped chapter files. It optionally enriches each chapter with AI-generated documentation powered by a local **Ollama** model. Both the **PySide6 desktop application** and the **command-line interface** share a unified core pipeline for splitting, organizing, and documenting transcripts. This ensures consistent behavior across every interface—whether you're scripting in the terminal or working visually in the GUI.
 
+---
+
 <div style="text-align: center;">
   <img src="./assets/screenshot.png" alt="Docalypt Logo" width="600"/>
 </div>

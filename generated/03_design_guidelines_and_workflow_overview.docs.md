@@ -21,7 +21,7 @@ flowchart TD
     I --> J[Generate Fabrication & Assembly Outputs]
     J --> K[Select Manufacturer & Submit Files]
     K --> L[Fabrication, Assembly & Test]
-    L --> M[Feedback to Design (Yield, Rework)]
+    L --> M[Feedback to Design - Yield, Rework]
     M --> I
 ```
 

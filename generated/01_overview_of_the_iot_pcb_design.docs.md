@@ -142,13 +142,13 @@ Any violations are corrected before generating Gerbers for fabrication.
 
 ```mermaid
 flowchart TD
-    A[Requirements & BOM] --> B[Schematic Capture (ERC)]
+    A[Requirements & BOM] --> B[Schematic Capture - ERC]
     B --> C[Component Footprint Selection]
-    C --> D[PCB Layout (Placement & Routing)]
-    D --> E[Design Rule Check (DRC)]
+    C --> D[PCB Layout - Placement & Routing]
+    D --> E[Design Rule Check - DRC]
     E --> F[Signal‑Integrity Review]
     F --> G[Gerber Generation]
-    G --> H[Fabrication (NextPCB)]
+    G --> H[Fabrication - NextPCB]
     H --> I[Assembly & Testing]
     I --> J[Iterate / Revise]
 ```
