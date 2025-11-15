@@ -4,6 +4,7 @@
 [![UI-PySide6](https://img.shields.io/badge/UI-PySide6-brightgreen)](https://doc.qt.io/qtforpython-6/)
 [![LLM-Ollama](https://img.shields.io/badge/LLM-Ollama-orange)](https://ollama.com/)
 [![Interface](https://img.shields.io/badge/interface-CLI%20%7C%20GUI-informational)](#running-docalypt)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CagriCatik/Docalypt)
 
 Docalypt automates the conversion of long-form Markdown transcripts into clean, timestamped chapter files. It can optionally generate AI-enhanced documentation for each chapter using local Ollama models or hosted LLM providers. Both the GUI and CLI use the same underlying pipeline to ensure consistent behavior across interfaces.
 
