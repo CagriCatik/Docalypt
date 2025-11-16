@@ -1,4 +1,4 @@
-# 18 – Pin‑out Planning & Assignment  
+# Pin‑out Planning & Assignment  
 
 *This section documents a systematic approach to selecting and assigning pins on a TI MSP‑G3507 microcontroller for a custom PCB. It captures the workflow, design constraints, and best‑practice recommendations that ensure a clean schematic and a manufacturable layout.*
 

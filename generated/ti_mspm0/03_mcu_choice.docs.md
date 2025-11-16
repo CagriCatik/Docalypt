@@ -1,4 +1,4 @@
-# MCU Choice  
+# MCU Choice
 
 ## Overview  
 

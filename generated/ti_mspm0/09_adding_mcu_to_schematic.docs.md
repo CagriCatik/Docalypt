@@ -1,4 +1,4 @@
-# 09 – Adding the MCU to the Schematic  
+# Adding the MCU to the Schematic  
 
 ## 1. Placing the MCU Symbol  
 

@@ -1,4 +1,4 @@
-# 07 – Adding Components  
+# Adding Components
 
 ## 1. Overview  
 

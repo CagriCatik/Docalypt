@@ -1,4 +1,4 @@
-# 11 Analog VREF – PCB Design Guidelines  
+# Analog VREF – PCB Design Guidelines  
 
 ---  
 

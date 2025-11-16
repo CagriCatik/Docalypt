@@ -1,4 +1,4 @@
-# 15 – Power Supply Design  
+# Power Supply Design  
 
 ## 1. Overview  
 

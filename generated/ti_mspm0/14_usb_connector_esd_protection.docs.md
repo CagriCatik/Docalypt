@@ -1,4 +1,4 @@
-# 14 USB Connector & ESD Protection  
+# USB Connector & ESD Protection
 
 This section documents the PCB‑level decisions, constraints, and best‑practice guidelines for adding a USB‑Type C receptacle, its power‑delivery (PD‑free) circuitry, and the required ESD protection to a low‑cost microcontroller board.
 

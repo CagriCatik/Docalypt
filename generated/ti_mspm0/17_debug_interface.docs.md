@@ -1,4 +1,4 @@
-# 17 Debug Interface Design  
+# Debug Interface Design
 
 ## 1. Overview  
 

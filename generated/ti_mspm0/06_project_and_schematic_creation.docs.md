@@ -1,4 +1,4 @@
-# 06 – Project and Schematic Creation  
+# Project and Schematic Creation  
 
 ## 1. Project Initialization  
 

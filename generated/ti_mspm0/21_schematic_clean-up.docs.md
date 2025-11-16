@@ -1,4 +1,4 @@
-# 21 – Schematic Clean‑Up  
+# Schematic Clean‑Up  
 
 ## 1. Overview  
 

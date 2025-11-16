@@ -1,4 +1,4 @@
-# 10 – MCU Power & Ground Connections  
+# MCU Power & Ground Connections  
 
 This section documents the recommended workflow, component choices, and PCB‑level best practices for supplying power to a microcontroller (MCU) and establishing its ground reference. The guidance is written for KiCad but the principles apply to any modern EDA tool.
 

@@ -1,4 +1,4 @@
-# 19  USB‑UART Interface IC  
+# USB‑UART Interface IC  
 
 This section documents the selection, schematic integration, and PCB‑level considerations for a USB‑to‑UART bridge based on the **CH340E** IC. The guidance below captures the engineering trade‑offs, component choices, and best‑practice layout techniques that ensure a reliable, low‑cost USB connectivity solution.
 

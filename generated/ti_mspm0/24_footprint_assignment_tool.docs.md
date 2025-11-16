@@ -1,4 +1,4 @@
-# 24 – Footprint Assignment Tool  
+# Footprint Assignment Tool  
 
 ## 1. Purpose and Scope  
 

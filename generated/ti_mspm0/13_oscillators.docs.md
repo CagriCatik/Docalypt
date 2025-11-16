@@ -1,4 +1,4 @@
-# 13 – Oscillators  
+# Oscillators  
 
 ## 1. Overview of Oscillator Options  
 
