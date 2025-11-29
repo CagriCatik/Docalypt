@@ -11,7 +11,7 @@
 00:24:09 - Adding MCU to Schematic
 00:25:45 - MCU Power & GND Connections
 00:34:44 - Analog VREF
-00:00:39:31 - Net Labels
+00:39:31 - Net Labels
 00:41:19 - NRST
 00:46:02 - Oscillators
 00:57:00 - USB Connector & ESD Protection
