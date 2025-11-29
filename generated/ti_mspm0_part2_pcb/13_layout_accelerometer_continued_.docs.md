@@ -1,7 +1,5 @@
 # Layout Considerations for the Accelerometer Sub‑System (Continued)
 
----
-
 ## 1. I²C Bus Pull‑Up Resistors – Proximity & Routing Strategy  
 
 The I²C bus is a relatively slow, open‑drain interface, but good layout hygiene still improves signal integrity and eases debugging.
@@ -15,8 +13,6 @@ The I²C bus is a relatively slow, open‑drain interface, but good layout hygie
 
 > **Best‑practice tip** – When the board edge is close to the I²C cluster, shift the pull‑up network slightly inward to preserve a margin for routing the UART and crystal traces (see Section 2).  
 
----
-
 ## 2. UART (RTS/CTS) Clearance & Crystal Placement  
 
 The UART signals (RTS, CTS) must traverse the area occupied by the crystal and its associated components (R7, R8, C9). If the crystal is positioned too far toward the board edge, the UART traces can become cramped or forced to use acute angles, which degrades signal quality and complicates assembly.
@@ -28,8 +24,6 @@ The UART signals (RTS, CTS) must traverse the area occupied by the crystal and i
 | **Aesthetic layout vs. functional routing** – a tidy layout may conflict with the need for clear signal paths. | **Prioritise functional clearance**; aesthetic symmetry is secondary for low‑speed UART. [Verified] |
 
 > **Design guideline** – For any differential pair (e.g., crystal) keep a **minimum of 3× trace width** spacing from unrelated single‑ended signals unless a specific impedance requirement dictates otherwise.  
-
----
 
 ## 3. Power‑Rail Organization – USB‑C Pull‑Downs, Pi‑Filter, and LDO Decoupling  
 
@@ -49,8 +43,6 @@ The power domain surrounding the USB‑C connector and the on‑board LDO (U1) f
 
 > **Thermal note** – The LDO may dissipate noticeable power when the USB source is at 5 V and the board draws higher currents. Ensure adequate copper pour under the regulator and consider a thermal via array if the package’s thermal resistance is a concern. [Speculation]  
 
----
-
 ## 4. General Layout Strategies & Trade‑offs  
 
 | Consideration | Typical Trade‑off | Recommended Approach |
@@ -59,8 +51,6 @@ The power domain surrounding the USB‑C connector and the on‑board LDO (U1) f
 | **Aesthetic symmetry vs. functional routing** | Symmetrical placement looks clean but may increase trace lengths or require vias that degrade signal quality. | **Prioritise functional routing**; use symmetry only when it does not compromise clearance or DFM rules. [Verified] |
 | **Layer count vs. cost** | Adding internal planes simplifies power/ground distribution and controlled‑impedance routing but raises fabrication cost. | For a modest‑speed accelerometer interface, a **2‑layer board** with a solid ground pour is sufficient; reserve additional layers only if higher‑speed interfaces (e.g., USB 3.0) are added later. [Speculation] |
 | **DFM/DFA compliance** | Small footprints and tight spacing can cause solder‑mask bridging or component placement errors. | **Select standard‑size footprints** (e.g., 0603 for passive components) and provide **silk‑screen reference markers** for critical parts like the crystal and USB‑C connector. [Verified] |
-
----
 
 ## 5. Signal‑Path Overview  
 
@@ -96,8 +86,6 @@ flowchart LR
 ```
 
 *The diagram reflects the logical grouping of power and communication nets; physical placement follows the guidelines in Sections 1‑3.*  
-
----
 
 ### Closing Remarks  
 

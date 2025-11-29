@@ -1,8 +1,6 @@
-# 09 – Layout for MCU Supporting Components  
+# Layout for MCU Supporting Components  
 
 *This section describes a systematic approach to placing the supporting circuitry of a micro‑controller (MCU) on a PCB. The guidance is derived from proven practice and reflects the decisions, constraints, and trade‑offs encountered when laying out a typical low‑to‑moderate‑speed MCU board.*
-
----
 
 ## 1. Placement Strategy Based on Criticality  
 
@@ -19,7 +17,6 @@ Placing the most timing‑sensitive parts first guarantees that the shortest pos
 
 > **Why this order matters** – The loop area of a decoupling capacitor directly influences the impedance seen by the MCU’s power pins; a larger loop adds inductance, degrading transient response. Similarly, the crystal’s feedback loop must be kept short to maintain frequency stability.  
 
----
 
 ## 2. Power‑Rail Decoupling and Loop‑Area Minimization  
 
@@ -40,8 +37,6 @@ Placing the most timing‑sensitive parts first guarantees that the shortest pos
 
 > **Design tip** – When a decoupling capacitor blocks a critical pin, consider moving the capacitor **and** rotating the MCU footprint (if the library permits) rather than forcing a long trace around the part.  
 
----
-
 ## 3. Crystal Oscillator and Load Capacitors  
 
 ### 3.1 Placement  
@@ -56,7 +51,6 @@ Placing the most timing‑sensitive parts first guarantees that the shortest pos
 
 > **Inference** – The designer deliberately left a clear corridor between the crystal and the USB connector to avoid interference.  
 
----
 
 ## 4. Voltage Reference and Analog Supply Network  
 
@@ -67,7 +61,6 @@ The analog reference (V<sub>RF</sub>/V<sub>F</sub>) network typically consists o
 
 These components are **critical for ADC accuracy**; therefore, their placement follows the same “short‑loop, minimal‑parasitic” philosophy used for power decoupling.  
 
----
 
 ## 5. Reset Network (Pull‑up, Filter Capacitor, and Series Resistor)  
 
@@ -80,7 +73,6 @@ If the reset network must cross other high‑speed traces, the designer can **re
 
 > **Speculation** – The designer may have used the bottom layer as a dedicated ground plane, allowing the reset trace to be routed on the top without compromising signal integrity.  
 
----
 
 ## 6. Component Orientation, Courtyard Clearance, and Mechanical Constraints  
 
@@ -90,7 +82,6 @@ If the reset network must cross other high‑speed traces, the designer can **re
 
 These considerations are part of **Design‑for‑Manufacturability (DFM)** and help prevent assembly issues such as solder bridging or component shifting during reflow.  
 
----
 
 ## 7. Layer Strategy and Ground Plane Utilization  
 
@@ -99,7 +90,6 @@ These considerations are part of **Design‑for‑Manufacturability (DFM)** and 
 
 Using a dedicated ground plane also allows the designer to **shorten ground vias** for decoupling capacitors, further reducing loop inductance.  
 
----
 
 ## 8. Iterative Layout Workflow  
 
@@ -121,8 +111,6 @@ flowchart TD
 ```
 
 *The loop “Adjust placement / rotate parts” is repeated until all DRC/ERC violations are cleared and the routing space is satisfactory.*  
-
----
 
 ## 9. Key Takeaways & Best‑Practice Summary  
 

@@ -1,8 +1,6 @@
-# 26 Manufacturing Files  
+# Manufacturing Files  
 
 This chapter describes the complete set of deliverables required to move a PCB design from the layout tool to a fabricator and, optionally, to an assembly house. It covers **Gerber generation**, **drill file creation**, **pick‑and‑place (component placement) files**, and the **bill of materials (BOM)**. The recommended workflow, file formats, and practical tips are illustrated with a typical low‑cost fabricator (e.g., JLCPCB) but are applicable to any manufacturer that accepts standard IPC‑2581/IPC‑274X data.
-
----
 
 ## 1. Overview of the Manufacturing Data Package  
 
@@ -14,8 +12,6 @@ This chapter describes the complete set of deliverables required to move a PCB d
 | **Bill of Materials (BOM)** | Enumerates part numbers, manufacturers, quantities, and sourcing links | `.csv`, `.xls` | Assembly (and procurement) |
 
 When only board fabrication is needed, the **Gerber archive** (Gerbers + drill files) is sufficient. For turnkey assembly, the **pick‑and‑place** and **BOM** must accompany the archive.
-
----
 
 ## 2. Gerber Generation  
 
@@ -64,7 +60,6 @@ Most low‑cost manufacturers still require the classic Gerber set; therefore **
 
 > **Tip:** Keep the Gerber filenames short and descriptive (e.g., `TopCopper.gbrx`). Some older CAM tools truncate long names, causing layer mismatches. [Inference]
 
----
 
 ## 3. Drill File Generation  
 
@@ -91,8 +86,6 @@ The resulting archive will contain at least two files:
 
 > **Why separate NPTH?**  
 > Some manufacturers charge differently for plated vs. non‑plated holes; separating them simplifies cost estimation. [Inference]
-
----
 
 ## 4. Assembly Data  
 
@@ -150,7 +143,6 @@ The BOM provides the **part numbers**, **manufacturers**, **distributors**, and 
 
 > **Common pitfall:** Selecting the wrong package size (e.g., 0605 vs. 0805) leads to mismatched footprints and assembly errors. Always double‑check the footprint‑to‑part mapping before export. [Inference]
 
----
 
 ## 5. Packaging & Submission  
 
@@ -168,7 +160,6 @@ The BOM provides the **part numbers**, **manufacturers**, **distributors**, and 
 
 > **Note:** Some manufacturers provide a “preview” of the board stackup and drill map after upload. Use this to verify that the origin and units are interpreted correctly. [Speculation]
 
----
 
 ## 6. Manufacturer‑Specific Considerations (JLCPCB Example)  
 
@@ -184,7 +175,6 @@ If any of these constraints are violated, the order will be rejected or delayed,
 
 > **Tip:** Keep a **template CSV** for both pick‑and‑place and BOM that matches the fab’s exact header. Copy‑paste the generated file into the template and adjust only the data rows. [Inference]
 
----
 
 ## 7. Best Practices & Common Pitfalls  
 
@@ -199,8 +189,6 @@ If any of these constraints are violated, the order will be rejected or delayed,
 | **Check component orientation** (rotation) in the placement file | Mis‑rotated parts cause assembly failures, especially for polarized devices. |
 | **Separate PTH and NPTH drill files** when possible | Some fabs charge per plated hole; clear separation aids cost estimation. |
 | **Keep a version‑controlled copy** of the manufacturing archive | Enables repeat orders and traceability for revisions. |
-
----
 
 ## 8. Process Flow Diagram  
 
@@ -217,9 +205,3 @@ flowchart TD
 ```
 
 *The flow emphasizes that **symbol field population** precedes all export steps, ensuring a complete BOM and accurate placement data.*  
-
----
-
-### End of Chapter 26 – Manufacturing Files  
-
-This documentation provides a repeatable, manufacturer‑agnostic workflow for preparing all necessary files for PCB fabrication and assembly, with specific notes for low‑cost Asian fabricators. Following these guidelines will minimize order rejections, reduce turnaround time, and improve overall product quality.

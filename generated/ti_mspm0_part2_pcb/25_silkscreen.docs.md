@@ -1,8 +1,6 @@
 # Silkscreen Layer Guidelines  
 
-*File: `25_silkscreen.md`*  
 
----
 
 ## 1. Purpose and Typical Content  
 
@@ -16,7 +14,7 @@ The silkscreen (also called legend) layer is the visual “paper‑back” of a 
 
 These items are purely cosmetic but become part of the **manufacturing documentation** and therefore must be reviewed for legibility and compliance.  
 
----
+
 
 ## 2. Top vs. Bottom Silkscreen – Cost and Process Considerations  
 
@@ -29,7 +27,6 @@ These items are purely cosmetic but become part of the **manufacturing documenta
 
 **Decision guidance** – If the bottom side will never be seen by the end‑user and no special markings are required, **omit the bottom silkscreen** to reduce process steps and cost. This is a common DFM (Design‑for‑Manufacturability) optimisation.  
 
----
 
 ## 3. Text Placement, Font Selection, and Legibility  
 
@@ -40,7 +37,6 @@ These items are purely cosmetic but become part of the **manufacturing documenta
 
 These practices minimise the risk of **silk‑to‑copper bridging** during the printing process.  
 
----
 
 ## 4. Pin‑1 and Component Designator Indicators  
 
@@ -51,7 +47,6 @@ Pin‑1 markers (often a small “1” or a triangle) are essential for correctl
 
 **[Verified]** “We have all the pin‑one indicators… we’ve got a bit of silk screen text around it.”  
 
----
 
 ## 5. Avoiding Silk on Holes and Exposed Copper  
 
@@ -62,7 +57,6 @@ Silkscreen ink that lands on a drilled hole or on exposed copper can cause sever
 
 **Best practice** – Keep a **clearance margin** (typically ≥ 0.15 mm) between any silkscreen element and the edge of a drilled hole or exposed copper area. If a component’s mechanical features (e.g., a through‑hole pin) are close to a legend, consider moving the legend or the hole in the layout.  
 
----
 
 ## 6. DFM Checklist for Silkscreen  
 
@@ -77,8 +71,6 @@ Silkscreen ink that lands on a drilled hole or on exposed copper can cause sever
 
 Running a **silkscreen DRC** (Design Rule Check) before generating manufacturing files catches most of these issues early.  
 
----
-
 ## 7. Impact on Solderability  
 
 Silkscreen ink is typically an epoxy‑based material that cures at relatively low temperatures. When ink lands on a copper surface that will later be soldered, it can:
@@ -87,8 +79,6 @@ Silkscreen ink is typically an epoxy‑based material that cures at relatively l
 - **Create voids** in the solder fillet, leading to mechanical weakness.  
 
 Therefore, **silkscreen should never overlap with any area that will be soldered** (pads, exposed copper, via barrels). This rule is especially critical for **high‑reliability or high‑current designs** where joint integrity is paramount.  
-
----
 
 ## 8. Manufacturing File Generation – Gerbers and Silkscreen  
 
@@ -107,8 +97,6 @@ When the bottom silkscreen is omitted, the Gerber file for that layer is simply 
 - Run a **final ERC/DRC** to verify electrical connectivity and mechanical clearances.  
 - Perform a **visual inspection** of the silkscreen layers in the CAM viewer to ensure no text overlaps prohibited areas.  
 
----
-
 ## 9. PCB Development Flow (Including Silkscreen)  
 
 ```mermaid
@@ -126,8 +114,6 @@ flowchart TD
 ```
 
 *The silkscreen design step (E) is a distinct activity that follows physical layout but precedes the final DRC/DFM checks. It is highlighted to stress its impact on cost, manufacturability, and board readability.*  
-
----
 
 ## 10. Summary  
 

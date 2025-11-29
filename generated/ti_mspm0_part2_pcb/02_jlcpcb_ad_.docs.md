@@ -2,7 +2,7 @@
 
 *This section documents the workflow, design considerations, and best‑practice recommendations when using JLCPCB (including their optional layout service) for the MSPM0 family of boards. All statements are annotated with certainty labels.*
 
----
+
 
 ## 1. Overview of JLCPCB Capabilities  
 
@@ -21,7 +21,7 @@ JLCPCB provides a full‑stack PCB solution: schematic capture, layout, fabricat
 
 > **Inference:** Leveraging JLCPCB’s layout team can shorten development cycles for teams focused on firmware or system integration rather than PCB geometry. `[Inference]`
 
----
+
 
 ## 2. End‑to‑End Development Flow  
 
@@ -29,21 +29,21 @@ The following flowchart captures the typical sequence from concept to a shipped 
 
 ```mermaid
 flowchart TD
-    A[Requirements & Specification] --> B[Schematic Capture (KiCad 9)]
+    A[Requirements & Specification] --> B[Schematic Capture - KiCad 9]
     B --> C{Layout Path}
-    C -->|DIY Layout| D[PCB Layout (KiCad) → DRC/ERC → Gerber Export]
+    C -->|DIY Layout| D[PCB Layout - KiCad → DRC/ERC → Gerber Export]
     C -->|JLCPCB Layout Service| E[Submit Netlist → JLCPCB Engineer → Layout Package]
-    D --> F[Design Review (DFM/DFA) → Quote Request]
+    D --> F[Design Review - DFM/DFA → Quote Request]
     E --> F
     F --> G[Manufacturing Quote & Lead‑time]
     G --> H[Place Order → Fabrication]
-    H --> I[Assembly (SMT placement, reflow, inspection)]
+    H --> I[Assembly - SMT placement, reflow, inspection]
     I --> J[Final Test & Shipping]
 ```
 
 *The diagram reflects the standard process; the “DIY Layout” branch assumes the designer performs all DFM/DFA checks before upload.* `[Verified]`
 
----
+
 
 ## 3. Preparing a KiCad Project for JLCPCB  
 
@@ -72,7 +72,7 @@ flowchart TD
 - Include a **drill file** (NC drill) and an **assembly drawing** (optional but helpful for manual inspection).  
 - Verify the stack‑up order in the Gerber viewer; mismatched layer ordering is a common source of fabrication errors.  
 
----
+
 
 ## 4. Manufacturing & Assembly Considerations  
 
@@ -103,7 +103,7 @@ JLCPCB’s assembly line supports **SMT placement**, **reflow soldering**, and *
 - **Batch Ordering** – Ordering multiple identical boards in a single panel reduces per‑board cost due to shared panelization.  
 - **Standard Stack‑up** – Sticking to JLCPCB’s default 2‑layer or 4‑layer stack‑ups avoids extra charges for custom stack‑ups.  
 
----
+
 
 ## 5. Design‑for‑Manufacturability (DFM) & Design‑for‑Assembly (DFA) Checklist  
 
@@ -125,10 +125,8 @@ JLCPCB’s assembly line supports **SMT placement**, **reflow soldering**, and *
 
 > **Inference:** Following these DFM/DFA guidelines will reduce the likelihood of “rework” charges from JLCPCB and improve overall yield. `[Inference]`
 
----
+
 
 ## 6. Summary  
 
 JLCPCB offers a **complete, low‑cost ecosystem** for turning a KiCad schematic into a fully assembled board. Their **layout service** is a practical option for teams lacking PCB expertise or dealing with high‑speed, high‑density requirements. By adhering to standard **ERC/DRC checks**, defining an appropriate **stack‑up**, and observing **DFM/DFA best practices**, designers can reliably obtain high‑quality assemblies with short lead times. Leveraging **coupons** and **batch ordering** further optimizes cost, making JLCPCB a compelling partner for both prototyping and low‑volume production.  
-
----

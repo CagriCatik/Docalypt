@@ -13,8 +13,6 @@ This arrangement provides a low‑impedance ground reference, simplifies routing
 
 > **Key principle:** *Assign the signal‑rich layer to the component side and dedicate the opposite layer to a continuous ground (or power) plane.*  [Verified]
 
----
-
 ## Creating a Bottom‑Layer Ground Polygon in KiCad  
 
 1. **Set the grid** – Increase the grid to a convenient size (e.g., 1 mm) with **Shift + N** or the toolbar.  
@@ -39,28 +37,29 @@ This arrangement provides a low‑impedance ground reference, simplifies routing
 
 > **Result:** A continuous ground plane on the bottom layer with solid connections to any pads that must be electrically tied (e.g., mounting‑hole pads used for grounding). [Verified]
 
----
-
 ## Design Considerations & Best Practices  
 
 ### 1. Ground Plane Impedance  
+
 A solid copper pour on the opposite layer of the signal side creates a low‑impedance return path, which improves signal integrity and reduces EMI. The plane’s effectiveness scales with copper thickness and continuity. [Inference]
 
 ### 2. Clearance Management  
+
 - **Generic clearance (0.3 mm → 0.4 mm)** works for most hobby‑grade manufacturers.  
 - For high‑voltage or safety‑critical designs, consult the fab house’s **creepage/clearance** tables and adjust accordingly. [Speculation]
 
 ### 3. Thermal Reliefs vs. Solid Pads  
+
 - **Thermal reliefs** reduce heat‑sinking during soldering, preventing component lift‑off on large copper areas.  
 - **Solid pads** are preferred for pads that are not soldered (e.g., mounting‑hole pads) or for high‑current connections where low resistance is critical. [Verified]
 
 ### 4. DRC / ERC Integration  
+
 Run **Design Rule Check (DRC)** after pouring to ensure the zone respects all clearance, width, and isolation rules. An **Electrical Rule Check (ERC)** will confirm that the ground net is correctly assigned to the polygon. [Verified]
 
 ### 5. Via Usage  
-Signal traces that need a ground reference should drop a **through‑hole via** to the bottom layer. This creates a short, low‑inductance return path and is sufficient for non‑high‑speed designs. [Inference]
 
----
+Signal traces that need a ground reference should drop a **through‑hole via** to the bottom layer. This creates a short, low‑inductance return path and is sufficient for non‑high‑speed designs. [Inference]
 
 ## Typical Workflow (Mermaid Diagram)
 
@@ -74,8 +73,6 @@ flowchart TD
     F --> G[Run DRC / ERC]
     G --> H[Finalize Layout & Export Gerbers]
 ```
-
----
 
 ## Summary  
 

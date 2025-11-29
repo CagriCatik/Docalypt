@@ -1,8 +1,6 @@
-# 11 – Accelerometer Layout Guidelines  
+# Accelerometer Layout Guidelines  
 
-This section documents the PCB‑level considerations for integrating the MEMS accelerometer (U4) into a mixed‑signal board. It covers decoupling strategy, ground‑pin selection, component placement, clearance for rework, aesthetic alignment, and the routing of the I²C and UART control lines. The recommendations are derived from the device datasheet, schematic cross‑reference, and proven layout practice.
-
----
+*This section documents the PCB‑level considerations for integrating the MEMS accelerometer (U4) into a mixed‑signal board. It covers decoupling strategy, ground‑pin selection, component placement, clearance for rework, aesthetic alignment, and the routing of the I²C and UART control lines. The recommendations are derived from the device datasheet, schematic cross‑reference, and proven layout practice.*
 
 ## 1. Decoupling Strategy  
 
@@ -20,7 +18,6 @@ The accelerometer’s analog‑digital interface is powered from **VDD** on pin�
 | **Direct stitching** of the capacitor’s two pads to the respective power and ground pins (no intermediate vias). | Reduces parasitic inductance and improves decoupling effectiveness. [Inference] |
 | **Symmetrical layout** when possible (e.g., centering C13 under the IC). | Improves mechanical balance and eases visual inspection; has negligible electrical impact when the loop length is unchanged. [Speculation] |
 
----
 
 ## 2. Ground‑Pin Selection  
 
@@ -28,7 +25,6 @@ The accelerometer package exposes multiple ground pads (pins 3, 9‑14). Onl
 
 **Implementation tip:** Route the ground pad of C13 to pin 9 using a short, wide trace or a copper pour that directly contacts the pad. Avoid routing through other ground pins unless a deliberate ground‑splitting scheme is required (rare for low‑power MEMS). [Inference]
 
----
 
 ## 3. Component Placement & Clearance  
 
@@ -47,7 +43,6 @@ Centering C13 with respect to U4 yields a tidy layout that eases visual inspecti
 
 > The alignment shift is typically a single grid step (0.25 mm) and has no measurable electrical impact. [Speculation]
 
----
 
 ## 4. Signal Routing Considerations  
 
@@ -67,7 +62,6 @@ The board also routes UART flow‑control signals (RTS, CTS). These signals may 
 2. **Route RTS/CTS on a different layer** or use a staggered via strategy to cross the I²C traces without creating a direct overlap.  
 3. **Check pin‑mux options** in the MCU’s pin‑assignment tool (e.g., Code Composer Studio) to select alternative UART pins (e.g., pins 18‑24) that are physically distant from the I²C pins. [Verified]
 
----
 
 ## 5. Design Trade‑offs & Best Practices  
 
@@ -88,7 +82,6 @@ The board also routes UART flow‑control signals (RTS, CTS). These signals may 
 7. **Plan UART RTS/CTS routing** on a separate layer or use alternative MCU pins to avoid crossing I²C.  
 8. **Run DRC/ERC** to verify spacing, net connectivity, and component‑to‑pad assignments.  
 
----
 
 ## 6. Layout Decision Flow (Mermaid)
 
@@ -111,13 +104,8 @@ flowchart TD
 
 *The flowchart captures the sequential decisions required to achieve a reliable, serviceable accelerometer layout.*  
 
----
 
 ### References  
 
 * Accelerometer datasheet – power pin (VDD) on pin 8, ground on pin 9.  
 * MCU pin‑mux tool (e.g., Code Composer Studio) – identification of I²C and UART pins.  
-
----  
-
-*End of Chapter 11 – Accelerometer Layout.*

@@ -1,4 +1,4 @@
-# 12 – Remapping MCU Pins  
+# Remapping MCU Pins  
 
 ## Overview  
 
@@ -6,7 +6,6 @@ When a microcontroller (MCU) offers flexible pin‑mapping, the physical layout 
 
 > **Key takeaway:** Treat the schematic as a logical description of connectivity; the physical pin‑out can be altered later to satisfy routing, DFM, and EMI constraints without redesigning the entire circuit. [Verified]
 
----
 
 ## 1. Pin‑Remap Strategy  
 
@@ -21,7 +20,6 @@ The MCU acts as the I²C master, so SDA is **bidirectional** while SCL is **outp
 
 > **Design implication:** Using a bidirectional global label for SDA clarifies its directionality to both schematic and layout tools. [Verified]
 
----
 
 ## 2. Schematic Organization  
 
@@ -39,8 +37,6 @@ The MCU acts as the I²C master, so SDA is **bidirectional** while SCL is **outp
 
 > **Benefit:** Consistent annotation reduces the risk of ERC/DRC violations caused by mismatched designators. [Inference]
 
----
-
 ## 3. Updating the PCB  
 
 1. **Synchronize schematic → layout**  
@@ -53,16 +49,12 @@ The MCU acts as the I²C master, so SDA is **bidirectional** while SCL is **outp
 
 > **Result:** All high‑speed or timing‑critical signals now have a single‑layer, monotonic path, which improves signal integrity and reduces manufacturing complexity. [Verified]
 
----
-
 ## 4. Pull‑Up Resistors and Decoupling  
 
 - **Pull‑up resistors** for the I²C bus were added (R7 and R8) and placed close to the MCU pins to minimize stub length.  
 - Decoupling capacitor **C14** remains adjacent to the MCU’s VDD pin, providing local high‑frequency bypass.  
 
 > **Design note:** For I²C at standard speeds (≤ 400 kHz), 4.7 kΩ pull‑ups are typical; higher speeds may require lower values. [Speculation]
-
----
 
 ## 5. Lessons Learned & Recommendations  
 
@@ -75,8 +67,6 @@ The MCU acts as the I²C master, so SDA is **bidirectional** while SCL is **outp
 | **Pull‑up placement** | Locating pull‑ups near the MCU reduced trace length and stub effect. | Keep passive components that terminate a bus as close as possible to the driver/receiver pins. |
 
 > **Overall principle:** Treat the schematic as a *living* document; iterative pin‑remapping and schematic re‑organisation are powerful tools to achieve a manufacturable, high‑quality PCB without sacrificing functionality. [Inference]
-
----
 
 ## 6. High‑Level Flow Diagram  
 
@@ -94,8 +84,6 @@ flowchart TD
 
 *The diagram illustrates the iterative process from detecting a routing issue to finalizing a clean layout.*  
 
----
-
 ## 7. Checklist for Future Pin‑Remap Projects  
 
 - **Verify MCU pin‑mux availability** (datasheet, pin‑function table).  
@@ -108,7 +96,3 @@ flowchart TD
 - **Perform final DRC/DRC** before sign‑off.  
 
 > **Tip:** Maintain a “pin‑map matrix” in the project documentation to track which MCU pins are currently assigned and which remain free for future changes. [Inference]
-
----  
-
-*End of Chapter 12 – Remapping MCU Pins*

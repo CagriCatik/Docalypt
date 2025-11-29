@@ -1,10 +1,8 @@
-# 22 – Power & Ground Routing  
+# Power & Ground Routing  
 
 ## Overview  
 
 This section documents the methodology used to route the power distribution network (PDN) and ground planes for a two‑layer board that supplies a 3.3 V rail from a USB‑C VBUS input. The focus is on **robust, low‑impedance power delivery**, **minimal impact on signal integrity**, and **manufacturability**. All recommendations are derived from the design choices made for this board and are supported by standard PCB engineering practice.  
-
----
 
 ## 1. Power‑Flow Topology  
 
@@ -22,8 +20,6 @@ flowchart LR
 * The **primary power path** follows the sequence **VBUS → Pi‑filter → LDO → output decoupling → 3.3 V rail**.  
 * Each **IC power pin** is fed **through a local decoupling capacitor first**, then the trace reaches the IC pad. This ordering uses the trace’s inductance and resistance together with the shunt capacitor to form a small LC filter, improving decoupling and reducing voltage ripple. [Verified]  
 
----
-
 ## 2. Trace‑Width Selection  
 
 | Net | Current / Frequency Consideration | Recommended Width | Rationale |
@@ -34,8 +30,6 @@ flowchart LR
 
 * When the pad size is 0.6 mm (e.g., USB‑C VBUS pad), the trace is made the same width to avoid bottlenecks. [Inference]  
 * For designs with **higher current** or **fast switching**, a polygon pour (copper fill) would be preferred; here, discrete wide traces are sufficient. [Inference]  
-
----
 
 ## 3. Routing Strategy  
 
@@ -59,8 +53,6 @@ flowchart LR
   2. Press **V** to place a via and switch layers automatically.  
   3. Continue routing on the new layer.  
 * The **bottom layer remains primarily a solid ground plane** with only a few small cuts for necessary power jumps. [Verified]  
-
----
 
 ## 4. Ground Plane Management  
 
@@ -87,7 +79,6 @@ flowchart LR
 * Placement is based on a **fraction of the wavelength** of the highest frequency of concern (commonly 1/10 – 1/20 λ). For typical board‑level frequencies (< 1 GHz), a spacing of **10 mm–15 mm** is adequate, but exact values should be derived from a wavelength calculation. [Inference]  
 * Vias are placed **around the board perimeter and near large copper pours** to create a “Swiss‑cheese‑free” ground.  
 
----
 
 ## 5. Design‑Rule & Manufacturing Checks  
 
@@ -99,15 +90,11 @@ flowchart LR
 
 Running DRC **iteratively** (e.g., after routing each major net) prevents the accumulation of hundreds of errors at the end of the project. [Verified]  
 
----
-
 ## 6. Final Clean‑Up  
 
 * **Silk‑screen**: Add reference designators, polarity marks for capacitors, and any required assembly notes.  
 * **Text & Labels**: Include board name, revision, and safety warnings directly on the silkscreen.  
 * **Export Manufacturing Files**: Gerbers, drill files, and assembly drawings are generated after the final DRC passes with **no errors**.  
-
----
 
 ## 7. Key Takeaways  
 

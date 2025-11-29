@@ -1,8 +1,8 @@
-# 03 PCB Set‑Up  
+# PCB Set‑Up  
 
-This section documents the complete workflow for preparing a new PCB layout, from importing the schematic to defining the board stack‑up, layer visibility, and design‑rule constraints. The guidelines below are derived from a typical two‑layer board design and illustrate best‑practice decisions that ensure manufacturability, reliable assembly, and predictable electrical performance.
+*This section documents the complete workflow for preparing a new PCB layout, from importing the schematic to defining the board stack‑up, layer visibility, and design‑rule constraints. The guidelines below are derived from a typical two‑layer board design and illustrate best‑practice decisions that ensure manufacturability, reliable assembly, and predictable electrical performance.
 
----
+
 
 ## 1. Importing the Schematic and Verifying Net Labels  
 
@@ -10,7 +10,7 @@ Before any layout work begins, confirm that the schematic‑to‑PCB net mapping
 
 > **Tip:** Perform an ERC immediately after any schematic edit; it catches label mismatches before they propagate to the PCB.
 
----
+
 
 ## 2. PCB Editor Navigation  
 
@@ -23,7 +23,7 @@ Before any layout work begins, confirm that the schematic‑to‑PCB net mapping
 
 The editor presents a **Layer Panel** on the right, listing all physical and fabrication layers (copper, solder mask, silkscreen, paste, etc.). For a simple two‑layer board only a subset of these layers is required.
 
----
+
 
 ## 3. Board Setup – Defining Stack‑up and Constraints  
 
@@ -109,7 +109,7 @@ Although the design uses **USB Full‑Speed** (12 Mbps) and does not require
 
 > **Note:** For **USB 2.0 High‑Speed** (480 Mbps) a controlled‑impedance pair (≈90 Ω differential) would be mandatory, requiring precise trace width/spacing and a dedicated reference plane. [Speculation]
 
----
+
 
 ## 4. Updating the PCB from the Schematic  
 
@@ -120,7 +120,7 @@ After completing the board‑setup, synchronize the layout with the schematic:
 
 At this point the board appears as a collection of un‑routed parts on a blank canvas, ready for component placement and trace routing.
 
----
+
 
 ## 5. Summary Flowchart  
 
@@ -140,7 +140,7 @@ flowchart TD
 
 *The flowchart captures the high‑level sequence from concept to fabrication, emphasizing the board‑setup step as the bridge between schematic completion and physical layout.*  
 
----
+
 
 ## 6. Key Takeaways  
 

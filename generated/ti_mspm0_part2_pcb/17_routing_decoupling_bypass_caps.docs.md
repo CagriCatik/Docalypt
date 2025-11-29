@@ -2,13 +2,13 @@
 
 *This section describes a systematic approach to routing power‑decoupling and bypass capacitors, focusing on low‑impedance connections, trace‑width management, clearance compliance, and practical KiCad workflow tips.*  
 
----  
+ 
 
 ## 1. Overview  
 
 Decoupling and bypass capacitors are the first line of defense against supply‑rail noise and transient current spikes. Their effectiveness is governed primarily by **the physical length and impedance of the connection** between the device pin and the capacitor. A disciplined routing strategy—starting with the most critical nets and progressively handling less critical connections—helps guarantee that every capacitor provides the intended performance without compromising manufacturability.  
 
----  
+ 
 
 ## 2. Routing Order of Criticality  
 
@@ -21,7 +21,7 @@ Decoupling and bypass capacitors are the first line of defense against supply‑
 
 > **Best practice:** Complete the point‑to‑point routing for the highest‑priority decoupling caps **before** placing polygon pours or large power‑plane fills. This prevents the pours from “stealing” clearance or creating unintended connections.  [Verified]  
 
----  
+ 
 
 ## 3. Decoupling/Bypass Capacitor Placement  
 
@@ -29,7 +29,7 @@ Decoupling and bypass capacitors are the first line of defense against supply‑
 2. **Orientation** – Align the capacitor so that the shortest trace can be routed directly from the pin to the capacitor’s **inner** pad (the pad nearest the pin). This reduces the loop area.  
 3. **Symmetry** – For differential or dual‑rail supplies (e.g., USB D+ / D‑), mirror the placement of the associated decoupling caps to keep the return paths balanced.  
 
----  
+ 
 
 ## 4. Trace‑Width Selection & Widening Strategy  
 
@@ -51,7 +51,7 @@ A wider copper trace reduces both **DC resistance** and **high‑frequency induc
 * To avoid this, route a short stub at the original width, **stop before the pad**, press **W** to change the width, then continue the trace to the pad.  
 * Alternatively, draw the widened segment first, then **copy‑rotate** a short piece of the original width and splice it at the pad entry point.  
 
----  
+ 
 
 ## 5. Pad Entry, Teardrops, and Stitching  
 
@@ -59,7 +59,7 @@ A wider copper trace reduces both **DC resistance** and **high‑frequency induc
 * Apply teardrops automatically (or manually) on every pad‑entry point for decoupling nets.  
 * When routing near a **ground polygon**, leave a small clearance (typically 0.15 mm) to allow the polygon to “stitch” to the pad without creating a short.  
 
----  
+ 
 
 ## 6. Handling Tight‑Pitch Areas & Clearance Rules  
 
@@ -79,7 +79,7 @@ In dense sections (e.g., IMU footprints with pins spaced <0.5 mm), the default
 
 When the required clearance forces a trace to be narrower than the default rule, add custom trace‑width entries (e.g., 0.15 mm, 0.25 mm) to the **Pre‑defined Sizes** list. This enables quick selection without repeatedly typing values.  
 
----  
+ 
 
 ## 7. Ground & Power Plane Integration  
 
@@ -87,7 +87,7 @@ When the required clearance forces a trace to be narrower than the default rule,
 * Ensure the polygons have **thermal relief** on the decoupling capacitor pads to aid solderability while maintaining a solid electrical connection.  
 * Verify that the polygons can **stitch** to all relevant pins (e.g., MCU VSS pins 2 and 7) by leaving a small clearance gap that the pour can bridge.  
 
----  
+ 
 
 ## 8. KiCad‑Specific Tips & Common Pitfalls  
 
@@ -98,7 +98,7 @@ When the required clearance forces a trace to be narrower than the default rule,
 | Unable to route a trace because the default width exceeds the allowed clearance. | Default trace width too large for the local spacing. | Add smaller predefined widths (e.g., 0.15 mm) and select them before routing. |
 | Polygon pour blocks a required connection between two pins. | Insufficient clearance for the pour to stitch. | Reduce polygon clearance locally or add a **via stitch** to bridge the gap. |  
 
----  
+ 
 
 ## 9. Flowchart – Decoupling Routing Process  
 
@@ -121,7 +121,7 @@ flowchart TD
     M --> N[Design Ready for Fabrication]
 ```
 
----  
+ 
 
 ## 10. Summary of Best Practices  
 

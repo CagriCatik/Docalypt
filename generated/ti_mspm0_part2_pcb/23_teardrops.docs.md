@@ -1,4 +1,4 @@
-# 23 – Teardrops  
+# Teardrops  
 
 ## Overview  
 

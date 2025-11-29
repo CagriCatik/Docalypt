@@ -1,7 +1,5 @@
 # Design Rules Check (DRC) – Workflow, Common Issues, and Best‑Practice Strategies  
 
----
-
 ## 1. Overview of the DRC Process  
 
 Before running a Design Rules Check the board should be **fully refreshed**:
@@ -22,8 +20,6 @@ flowchart TD
 
 *The loop continues until the board reports zero errors and, ideally, zero warnings.* `[Verified]`
 
----
-
 ## 2. Typical Violations Encountered  
 
 | Violation Type | Typical Cause | Recommended Remedy |
@@ -32,8 +28,6 @@ flowchart TD
 | **Solder‑mask aperture bridge (different nets)** | Fine‑pitch packages (LQFP, IMU) where the mask opening must cover multiple pads; manufacturer’s mask tolerance may be exceeded. | Either (a) lower the severity to *Warning* or *Ignore* for those specific nets, **or** (b) relax the mask expansion in *Design → Board Options → Solder Mask* if the fab can accept it. `[Inference]` |
 | **Incomplete thermal relief** | Thermal‑relief spokes were removed manually, leaving a solid copper‑to‑pad connection that the DRC expects to be a relief. | Convert the connection back to a thermal relief, or deliberately change the rule to accept solid connections when thermal mass is low. `[Verified]` |
 | **Footprint‑related clearance** (e.g., USB connector mounting pin too close) | Footprint geometry does not respect the board’s clearance rules. | Edit the **instance** of the footprint (not the library) to shorten or reposition offending pads, then rebuild zones. `[Verified]` |
-
----
 
 ## 3. Managing Violation Severity  
 
@@ -44,8 +38,6 @@ DRC violations can be **re‑classified** without altering the underlying rule s
 3. In the *Design for Manufacturing* section, locate the specific rule (e.g., *Solder Mask Aperture Bridges – Items with Different Nets*) and set its severity to *Warning* or *Ignore*.  
 
 > **Best practice:** Use severity changes **sparingly** and only for issues that are truly acceptable from a manufacturability standpoint (e.g., fine‑pitch mask openings). Keep a record of any ignored rules for future design reviews. `[Inference]`
-
----
 
 ## 4. Systematic Error Resolution  
 
@@ -75,8 +67,6 @@ When a component’s mechanical envelope conflicts with clearance rules:
 
 > Editing the instance preserves library integrity while allowing quick fixes for a single board revision. `[Verified]`
 
----
-
 ## 5. Decision Matrix: When to Modify Rules vs. When to Redesign  
 
 ```mermaid
@@ -98,8 +88,6 @@ flowchart TD
 
 > This matrix helps maintain a **balanced trade‑off** between manufacturability, cost, and performance. `[Inference]`
 
----
-
 ## 6. Final Verification Checklist  
 
 | Item | Target | Comments |
@@ -109,8 +97,6 @@ flowchart TD
 | **Zone Refill** | Completed after every major edit | Guarantees copper pour integrity. |
 | **Manufacturing Review** | Completed | Verify that any relaxed rules are within the fab’s capability sheet. |
 | **Footprint Consistency** | Library unchanged, instance edited | Prevents unintended propagation to other designs. |
-
----
 
 ## 7. Lessons Learned & Best Practices  
 

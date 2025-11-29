@@ -1,8 +1,6 @@
-# 08 – Refining the PCB Layout  
+# Refining the PCB Layout
 
 In this stage the physical placement of every part is tuned to satisfy **manufacturability**, **assembly**, **electrical performance**, and **mechanical** constraints before any routing begins. The focus is on clearing the board outline, establishing reliable reference features, and positioning high‑priority blocks (USB‑C, ESD protection, power regulation) to simplify later routing and improve signal integrity.
-
----
 
 ## 1. Component Courtyard Management  
 
@@ -11,8 +9,6 @@ In this stage the physical placement of every part is tuned to satisfy **manufac
 - **Practical tip:** After the initial placement, run a **Design Rule Check (DRC)** for courtyard clearance. Any highlighted violations should be resolved by nudging the offending part or expanding the board edge.  
 
 > **Why it matters:** Overlapping courtyards can cause the assembly house to reject the panel, and edge‑adjacent courtyards can lead to copper delamination during flex or handling.
-
----
 
 ## 2. Fiducial Marker Strategy  
 
@@ -26,8 +22,6 @@ Fiducials are high‑contrast copper pads used by pick‑and‑place machines an
 | **Size & copper exposure** | Use a pad size that satisfies the assembler’s tolerance (typically ≥ 1 mm square with a 0.2 mm clearance ring).  [Speculation] |
 
 > **Best practice:** Verify fiducial visibility in the 3‑D view of the ECAD tool; this catches hidden occlusions caused by tall components.
-
----
 
 ## 3. Edge Clearance & Connector Overhang  
 
@@ -43,16 +37,12 @@ Fiducials are high‑contrast copper pads used by pick‑and‑place machines an
 
 > **Design rule tip:** Set the ECAD tool’s “keep‑out” rule for the board outline to at least the largest required clearance (typically the through‑hole rule) to automate compliance.
 
----
-
 ## 4. ESD Protection Placement  
 
 - **Proximity to source:** Place ESD protection devices **as close as possible** to the USB‑C connector’s VBUS and CC pins. This shunts transient energy to ground before it can propagate into downstream circuitry.  [Verified]  
 - **Ground reference:** Ensure a low‑impedance ground plane under the protection device to provide an effective discharge path.  
 
 > **Signal‑integrity note:** Keeping the protection network short also reduces added parasitic inductance, preserving the high‑speed USB‑C signal integrity.
-
----
 
 ## 5. Power Regulation and Supporting Circuitry  
 
@@ -61,16 +51,12 @@ Fiducials are high‑contrast copper pads used by pick‑and‑place machines an
 
 > **Thermal consideration:** Provide adequate copper pour or thermal vias beneath the regulator to spread heat, especially for high‑current designs.  [Speculation]
 
----
-
 ## 6. USB Signal Routing Considerations  
 
 - **Length minimization:** Keep the USB differential pair **as short as practicable** and maintain consistent spacing to preserve the target differential impedance (typically 90 Ω).  [Verified]  
 - **Component proximity:** Move the USB controller (U2) **closer to the connector** (D1) to reduce trace length and avoid unnecessary bends.  [Verified]  
 
 > **Impedance control:** If the design requires controlled impedance, set the trace width/spacing based on the stack‑up’s dielectric thickness and use the ECAD tool’s impedance calculator.  [Speculation]
-
----
 
 ## 7. Iterative Placement Workflow  
 
@@ -96,8 +82,6 @@ flowchart TD
 
 *The diagram illustrates the feedback nature of layout refinement.*  [Verified]
 
----
-
 ## 8. Consolidated Best‑Practice Checklist  
 
 | Aspect | Guideline |
@@ -110,8 +94,6 @@ flowchart TD
 | **Regulator** | Isolate from high‑speed I/O; allow space for passive network. |
 | **Iterative loop** | Run DRC/ERC after each major move; adjust pin‑outs if needed. |
 | **Thermal & mechanical** | Provide copper pours/thermal vias for power devices; respect mechanical stress zones. |
-
----
 
 ### Closing Remarks  
 

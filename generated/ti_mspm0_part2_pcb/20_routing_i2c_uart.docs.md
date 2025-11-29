@@ -2,7 +2,7 @@
 
 *This section documents best‑practice routing techniques for the I²C bus and UART interface on a typical 2‑layer (or mixed‑layer) board. The guidelines are derived from a successful layout implementation and are applicable to similar low‑to‑moderate‑speed digital designs.*
 
----
+
 
 ## 1. Overview  
 
@@ -15,7 +15,6 @@ I²C and UART are the most common serial interfaces on microcontroller‑centric
 
 The following subsections detail how these goals were achieved for the I²C and UART nets.
 
----
 
 ## 2. General Routing Guidelines  
 
@@ -28,7 +27,6 @@ The following subsections detail how these goals were achieved for the I²C and 
 | **Keep traces away from the board edge when they sit above a reference plane**. | Edge proximity allows fields to leak off the board, increasing radiated emissions. [Inference] |
 | **Separate high‑frequency or noisy nets (e.g., crystal, RTS/CTS) from low‑speed I²C lines**. | Minimises the risk of the crystal’s harmonic content coupling into the bus. [Inference] |
 
----
 
 ## 3. I²C Bus Routing  
 
@@ -51,7 +49,6 @@ The following subsections detail how these goals were achieved for the I²C and 
 
 * Both SCL and SDA use a tapered entry (≈ 30 % width reduction) before the pad, ensuring a smooth current transition and reliable solder fillet formation.  
 
----
 
 ## 4. UART Routing (RX, TX, RTS, CTS)  
 
@@ -71,8 +68,6 @@ The following subsections detail how these goals were achieved for the I²C and 
 * Although RTS and CTS run roughly parallel for a short distance, the designer added extra spacing to mitigate crosstalk.  
 * The decision to prioritize distance from the crystal over a perfectly straight path reflects a trade‑off between layout simplicity and EMI control. [Inference]  
 
----
-
 ## 5. Managing Crosstalk & EMI  
 
 1. **Increase spacing** between any two signal traces that run parallel for more than a few millimetres.  
@@ -82,22 +77,16 @@ The following subsections detail how these goals were achieved for the I²C and 
 
 These practices collectively lower the probability of signal integrity issues and help the board pass EMI compliance testing. [Verified]
 
----
-
 ## 6. Pad Entry, Neck‑Down, and Via Usage  
 
 * **Neck‑down**: When a trace approaches a pad, the width is gradually reduced (typically to 60 % of the main trace width) before the pad edge. This reduces the abrupt change in impedance and eases solder flow.  
 * **Via placement**: Critical nets (e.g., UART TX before the decoupling capacitor) use a via placed as close as possible to the pad to keep the return path short. Vias are also used to transition to the bottom layer only when absolutely necessary, preserving the top‑layer ground plane continuity.  
 * **Via fences**: A series of closely spaced vias can be placed around sensitive components (e.g., crystal) to create a virtual guard ring, discouraging other traces from crossing the keep‑out area.  
 
----
-
 ## 7. Power‑Net Considerations (Brief)  
 
 * The 3.3 V rail is fanned out through the pull‑up network and decoupling capacitors before reaching the MCU.  
 * While the primary focus of this chapter is signal routing, the designer noted the need for a later “jumper” to connect the 3.3 V nets, indicating that power distribution will be refined after the signal routing is locked down. [Inference]  
-
----
 
 ## 8. Design Review Checklist (Signal Routing)  
 
@@ -111,8 +100,6 @@ These practices collectively lower the probability of signal integrity issues an
 | **Via Usage** | Vias placed only where necessary; keep‑out fences around crystal implemented. |
 | **Crosstalk Mitigation** | Spacing increased where parallelism unavoidable; verify with ERC/DRC. |
 | **Length Optimization** | Trace lengths kept as short as practical; no unnecessary detours. |
-
----
 
 ## 9. High‑Level Routing Flow (Mermaid Diagram)
 
@@ -131,8 +118,6 @@ flowchart TD
 ```
 
 *The diagram summarises the logical order of routing actions, emphasizing the early placement of critical nets (I²C, UART) before finalising the ground plane and performing design rule checks.*  
-
----
 
 ## 10. Conclusions  
 

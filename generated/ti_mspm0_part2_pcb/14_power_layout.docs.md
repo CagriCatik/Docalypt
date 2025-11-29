@@ -5,8 +5,6 @@
 When arranging components on a board the **power path** must be treated as the most critical subsystem.  
 Resistors that merely define USB‑C CC‑line pull‑downs (R2, R3) are far less sensitive to placement; they could be positioned arbitrarily without jeopardising functionality. Consequently the layout workflow should start with the **VBUS rail, input filtering, and regulator circuitry**, and only then place the ancillary components such as pull‑downs or optional bypass caps. [Verified]
 
----
-
 ## 2. USB Type‑C Power Entry and Input Filtering  
 
 ### 2.1 Connector Pinout Awareness  
@@ -43,8 +41,6 @@ The exact routing order (VBUS → C1 → R1 → C2 vs. VBUS → R1 → C1 → C2
 
 TVS diodes for VBUS and data lines should be placed **adjacent to the connector** and **share the same short VBUS trace** used by the PI filter. This keeps the protective path as short as possible, limiting the energy that can be coupled into downstream circuitry during an ESD event. [Verified]
 
----
-
 ## 3. LDO Regulator Decoupling  
 
 The regulator (U1) supplies the 3.3 V rail for the audio subsystem. Proper decoupling is essential for stability and noise performance.
@@ -66,8 +62,6 @@ The regulator (U1) supplies the 3.3 V rail for the audio subsystem. Proper dec
 - **Purpose**: Further reduces high‑frequency noise on the 3.3 V rail; not always required depending on the LDO’s internal architecture.  
 - **Placement**: Near the regulator, but with a modest separation from C3/C5 to avoid crowding. The trace between pin 4 (bypass) and pin 1 (input) should be short yet not so tight that solder‑mask clearance becomes an issue. [Verified]
 
----
-
 ## 4. CC‑Line Pull‑Down Resistors (R2, R3)  
 
 The CC pins need **10 kΩ pull‑downs** to indicate a default power role to the host. Placement guidelines:
@@ -76,16 +70,12 @@ The CC pins need **10 kΩ pull‑downs** to indicate a default power role to t
 - **Routing under the connector** is acceptable when the connector’s shell is **raised** and does not make direct contact with the solder mask. However, designers should **avoid relying on the solder mask as an insulator**; if the shell is low‑profile, route the pull‑downs on the outer layer instead. [Verified]  
 - **Clearance**: Maintain sufficient creepage/clearance from VBUS to satisfy safety standards (typically > 0.5 mm for 5 V systems). [Speculation]
 
----
-
 ## 5. Routing Considerations for VBUS and ESD  
 
 - **Short VBUS traces** from the connector to the PI filter and then to the LDO minimise voltage drop and EMI.  
 - **Keep VBUS away from high‑frequency data traces** to reduce coupling.  
 - **Ground plane continuity** under the VBUS and filter area is crucial; avoid splitting the plane with unnecessary cuts.  
 - **Via stitching** around the regulator and filter region improves return‑path integrity and reduces impedance. [Inference]
-
----
 
 ## 6. Mechanical and Assembly Constraints  
 
@@ -103,8 +93,6 @@ When the USB‑C shell is **raised**, routing traces **under** the connector is 
 - **Fiducial markers** must be clearly visible and free of copper or solder‑mask artifacts.  
 - **Mounting holes** can be placed after component placement to avoid accidental blockage of traces or vias. [Verified]
 
----
-
 ## 7. Stackup and Layer Planning  
 
 Before routing begins, define a **stackup** that matches the board’s electrical and mechanical requirements:
@@ -119,8 +107,6 @@ Bottom Layer (optional, currently unused)
 
 - For a **single‑sided component board**, a **2‑layer stackup** (signal on top, solid ground plane on the bottom) provides excellent return‑path performance and simplifies impedance control for the modest speed signals present.  
 - If additional routing density becomes necessary, a **4‑layer stackup** can be introduced later, moving high‑speed or dense signal nets to inner layers while preserving the solid ground reference. [Inference]
-
----
 
 ## 8. High‑Level Power‑Path Flow  
 
@@ -142,8 +128,6 @@ flowchart LR
 ```
 
 *The flow emphasises the short, low‑impedance connections between each stage, which is the cornerstone of a stable power distribution network.* [Verified]
-
----
 
 ## 9. Summary of Best Practices  
 

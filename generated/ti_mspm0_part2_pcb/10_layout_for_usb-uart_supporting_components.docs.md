@@ -1,10 +1,9 @@
-# 10 – Layout for USB‑UART Supporting Components  
+# Layout for USB‑UART Supporting Components  
 
 ## Overview  
 
 The USB‑to‑UART bridge (U2) is the first high‑speed peripheral that must be placed and routed after the power network is defined. Its proper layout directly influences USB enumeration reliability, UART signal integrity, and the ease of routing downstream interfaces such as the MCU and sensors. This section details the placement of the decoupling network, the routing philosophy for power and UART lines, and the design‑intent conventions that keep the schematic‑to‑layout translation unambiguous.
 
----
 
 ## 1. Decoupling Capacitor Placement for the USB‑UART Bridge  
 
@@ -21,7 +20,6 @@ The USB‑to‑UART bridge (U2) is the first high‑speed peripheral that must b
 - **High‑Frequency Bypass** – USB 2.0 full‑speed (12 Mbps) and low‑speed (1.5 Mbps) already demand low‑impedance paths; any added parasitic inductance can cause voltage droop during transient bursts.  
 - **Current Return Path** – Placing the capacitor next to the power pin forces the return current to flow directly through the ground plane, limiting radiated emissions. [Verified]
 
----
 
 ## 2. Maintaining Design Intent and Component Order  
 
@@ -32,7 +30,6 @@ The schematic explicitly annotates the intended order of C6 and C7 relative to t
 
 Even when the two capacitors are electrically interchangeable, adhering to the schematic‑driven placement demonstrates disciplined engineering practice and eases hand‑off to manufacturing. [Inference]
 
----
 
 ## 3. Routing Strategies for USB Power and UART Signals  
 
@@ -51,7 +48,6 @@ This approach trades a marginal increase in trace resistance for a significant g
 - **Avoid crossing the decoupling loop**; if a trace must pass near the capacitor, maintain at least one trace width clearance to preserve the integrity of the power loop.  
 - **Prefer same‑layer routing** for low‑speed UART (≤ 115 kbps) to simplify the stackup; higher speeds would demand controlled‑impedance differential routing, but this is unnecessary for the current design. [Verified]
 
----
 
 ## 4. Symmetry, Aesthetics, and Current Loop Minimization  
 
@@ -63,7 +59,6 @@ While visual symmetry does not affect electrical performance, a **balanced layou
 
 Thus, positioning C7 in a mirror image of C6, even if it requires a slight compromise in trace length, is a worthwhile trade‑off. [Inference]
 
----
 
 ## 5. Planning for Future Supporting Components  
 
@@ -75,7 +70,6 @@ After the USB‑UART bridge is secured, the next logical block is the **accelero
 
 These foresight steps prevent costly re‑routing and maintain a clean, modular board architecture. [Inference]
 
----
 
 ## 6. General PCB Best Practices Illustrated by This Layout  
 
@@ -88,7 +82,6 @@ These foresight steps prevent costly re‑routing and maintain a clean, modular 
 | **Signal Integrity for Low‑Speed UART** | No controlled‑impedance routing required; standard trace width and spacing suffice. |
 | **Aesthetic Layout** | Symmetrical placement of C6 and C7 improves visual inspection and board documentation. |
 
----
 
 ## 7. High‑Level Block Diagram  
 
@@ -111,7 +104,6 @@ flowchart LR
 
 *The diagram emphasizes the short, direct connections from the USB‑UART bridge to its decoupling caps and the MCU, while reserving a clear path for future sensor integration.* [Inference]
 
----
 
 ### Key Takeaways  
 

@@ -11,8 +11,6 @@ Before any files are sent to the fab house, a **double‑check** of the exported
 
 > *Why?* A visual inspection catches export errors that DRC/ERC cannot see, such as missing drill data or misplaced silkscreen text.  [Verified]
 
----
-
 ## 2. Selecting Board Stack‑up & Materials  
 
 | Parameter | Chosen Value | Rationale |
@@ -26,8 +24,6 @@ Before any files are sent to the fab house, a **double‑check** of the exported
 
 > **Tip:** When the design contains fine‑pitch components (e.g., a 0.5 mm pitch accelerometer), ENIG can improve solder joint reliability and reduce the risk of tombstoning. [Speculation]
 
----
-
 ## 3. Quantity, Pricing & Cost Trade‑offs  
 
 | Item | Quantity | Unit Cost (approx.) | Total |
@@ -39,8 +35,6 @@ Before any files are sent to the fab house, a **double‑check** of the exported
 *The minimum order of five boards keeps the per‑unit cost low while still providing enough units for testing and iteration.* [Verified]  
 
 > **Design‑for‑Cost (DfC) note:** If the design can tolerate a larger batch size, the per‑unit cost of assembly drops further because the fixed setup fee is amortised over more units. [Inference]
-
----
 
 ## 4. Assembly Options – Economic vs. Standard  
 
@@ -55,8 +49,6 @@ Because the board includes a **fine‑pitch accelerometer (U4)**, the **Standard
 
 > **Best practice:** When possible, select component packages that match the intended assembly tier. For low‑cost prototypes, using a larger‑pitch version of a sensor can enable the cheaper Economic service. [Speculation]
 
----
-
 ## 5. Production File Confirmation  
 
 Enabling the **“Confirm production files”** option forces the fab house to send back the exact Gerber and drill files they will use for manufacturing. A nominal $1 fee applies.  
@@ -68,8 +60,6 @@ Enabling the **“Confirm production files”** option forces the fab house to s
 
 > **Recommendation:** Always enable this option for any design that will be shipped to a third‑party assembly house. [Verified]
 
----
-
 ## 6. BOM & Pick‑and‑Place Verification  
 
 1. **Upload the “blue‑materials” (BOM) file** and the **pick‑and‑place (PnP) file** in the manufacturer’s required CSV format.  
@@ -79,8 +69,6 @@ Enabling the **“Confirm production files”** option forces the fab house to s
 3. **Special‑fee components** (e.g., a USB Type‑C connector) are highlighted; accept the additional charge if the part is required.  
 
 > **Why manual review matters:** Automated matching can mis‑interpret similar part numbers or overlook a missing pin‑1 indicator, leading to assembly errors. [Verified]
-
----
 
 ## 7. Footprint & Orientation Validation  
 
@@ -93,8 +81,6 @@ After the BOM check, the platform presents a **visual placement view** (2‑D an
 
 > **Best practice:** Keep a library of verified footprints with consistent orientation conventions to minimise manual rotation during the ordering stage. [Speculation]
 
----
-
 ## 8. Final Cost Summary & Shipping  
 
 The checkout page aggregates all charges:  
@@ -103,8 +89,6 @@ The checkout page aggregates all charges:
 * The **device usage classification** (e.g., “Research/Education – Development Board”) is required for customs documentation.  
 
 > **Tip:** Selecting the correct usage category can reduce import duties and expedite clearance. [Speculation]
-
----
 
 ## 9. End‑to‑End Ordering Flowchart  
 
@@ -124,8 +108,6 @@ flowchart TD
 ```
 
 *The flowchart captures the critical decision points and verification steps that ensure a reliable, cost‑effective order.* [Verified]
-
----
 
 ## 10. Key Takeaways & Best‑Practice Checklist  
 

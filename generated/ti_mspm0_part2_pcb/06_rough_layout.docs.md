@@ -1,12 +1,10 @@
-# 06 – Rough Layout  
+# Rough Layout  
 
 ## 1. Overview  
 
 A well‑executed rough layout is the foundation for a smooth routing phase.  
 If components are placed haphazardly, routing may require additional layers, excessive via usage, or extensive redesign – all of which increase cost and time.  
 The goal of the rough layout is to establish a logical, manufacturable component map that respects mechanical constraints, signal‑flow considerations, and DFM (Design‑for‑Manufacturing) guidelines before any detailed routing begins. [Verified]
-
----
 
 ## 2. Layout Philosophy & Functional Sectioning  
 
@@ -22,8 +20,6 @@ The board is divided into **functional sections** that are placed relative to on
 
 Each section is first placed as a **block**, then the surrounding passive components (decoupling, filtering, test points) are added. This block‑first approach reduces the number of long, crossing rats‑nests and makes later routing more deterministic. [Verified]
 
----
-
 ## 3. Grid Strategy & Placement Accuracy  
 
 | Grid Size | Recommended Use |
@@ -33,19 +29,19 @@ Each section is first placed as a **block**, then the surrounding passive compon
 | **≤0.1 mm** | Not required for typical hobby‑grade designs; reserved for ultra‑fine pitch parts |
 
 * **Why a fixed grid?**  
-  - Guarantees repeatable component spacing.  
-  - Aligns with pick‑and‑place machine tolerances (typically ±0.1 mm).  
-  - Simplifies DRC (Design Rule Check) because clearance rules can be expressed as integer multiples of the grid. [Inference]
+  * Guarantees repeatable component spacing.  
+  * Aligns with pick‑and‑place machine tolerances (typically ±0.1 mm).  
+  * Simplifies DRC (Design Rule Check) because clearance rules can be expressed as integer multiples of the grid. [Inference]
 
 * **Keyboard shortcuts** (generic to most ECAD tools):  
-  - `N` / `Shift + N` – cycle grid down/up.  
-  - `M` – move component (snaps to grid).  
-  - `R` – rotate 90 ° CCW.  
-  - `Ctrl + Shift + M` – measure distance.  
+  * `N` / `Shift + N` – cycle grid down/up.  
+  * `M` – move component (snaps to grid).  
+  * `R` – rotate 90 ° CCW.  
+  * `Ctrl + Shift + M` – measure distance.  
 
 Adhering to a **minimum 0.25 mm grid** for all components (including decoupling caps) provides a safe margin for most assembly houses while still allowing compact layouts. [Verified]
 
----
+
 
 ## 4. Component Placement Workflow  
 
@@ -58,19 +54,15 @@ Adhering to a **minimum 0.25 mm grid** for all components (including decouplin
 
 During this process, **avoid placing components directly on top of each other**; maintain a clearance that accommodates solder mask expansion and component footprints. [Inference]
 
----
-
 ## 5. Pin Assignment Flexibility  
 
 Microcontrollers and FPGAs often provide **multiple pin‑function options** (e.g., UART, SPI, I²C) on the same physical pad.  
 
 * **Best practice:**  
-  - Review the schematic netlist and, if a net is congested, re‑assign the function to an alternative pin that yields a shorter, more direct route.  
-  - Keep power pins (VDD, VSS) fixed; they cannot be remapped.  
+  * Review the schematic netlist and, if a net is congested, re‑assign the function to an alternative pin that yields a shorter, more direct route.  
+  * Keep power pins (VDD, VSS) fixed; they cannot be remapped.  
 
 This flexibility can dramatically reduce routing complexity and should be considered **before** committing to a placement. [Inference]
-
----
 
 ## 6. Cross‑Reference Between Schematic and PCB  
 
@@ -81,8 +73,6 @@ Most modern ECAD suites provide **bidirectional cross‑highlighting**:
 
 Keeping both windows open (or using a dual‑monitor setup) eliminates the need to toggle between tabs and speeds up verification of net connections, especially on large, multi‑page schematics. [Verified]
 
----
-
 ## 7. Board Outline, Mounting Holes, and Mechanical Constraints  
 
 1. **Define mounting‑hole footprints** (e.g., M3) early; they act as reference points for the board envelope.  
@@ -91,8 +81,6 @@ Keeping both windows open (or using a dual‑monitor setup) eliminates the need 
 4. **Measure** the provisional board size using the ECAD measurement tool; adjust component placement if the board exceeds the target envelope.  
 
 Mechanical constraints such as enclosure dimensions, mounting‑hole locations, and keep‑out areas must be respected throughout the layout; otherwise, redesign will be required later. [Verified]
-
----
 
 ## 8. Iterative Refinement & Measurement  
 
@@ -128,7 +116,7 @@ flowchart TD
 
 The flow emphasizes that **mechanical constraints** and **grid selection** precede any component placement, ensuring that the subsequent steps are built on a solid foundation. [Verified]
 
----
+
 
 ## 10. Key Takeaways  
 

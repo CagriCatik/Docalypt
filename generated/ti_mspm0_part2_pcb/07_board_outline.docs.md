@@ -1,10 +1,10 @@
-# 07 Board Outline  
+# Board Outline
 
 ## Overview  
 
 The **Edge Cuts** layer defines the physical shape of a PCB. It is the only layer that the fab house uses to generate the board‑outline data for panelization, nesting, and mechanical drawings. A well‑defined outline guarantees that the board fits its intended enclosure, that mounting holes are correctly positioned, and that sufficient clearance is left for copper, silkscreen, and components.  
 
----
+
 
 ## 1. Defining the Outline on the Edge Cuts Layer  
 
@@ -18,7 +18,7 @@ The **Edge Cuts** layer defines the physical shape of a PCB. It is the only la
 
 > **Tip:** Even a rough outline is acceptable for a development board, but for production boards you should align the outline to the exact mechanical envelope of the enclosure. [Verified]
 
----
+
 
 ## 2. Adding Rounded Corners  
 
@@ -33,7 +33,7 @@ Repeat the process for each corner, or copy‑paste a finished corner and rotate
 
 > **Design note:** Rounded corners reduce stress concentration at the board edge and are easier to route with a CNC router than sharp 90° V‑cuts. [Inference]
 
----
+
 
 ## 3. Clearance & Manufacturability  
 
@@ -53,7 +53,7 @@ These clearances are a common DFM rule of thumb and were explicitly recommended 
 
 When a design uses rounded corners, routing is the preferred method because V‑cuts cannot produce smooth arcs. [Verified]
 
----
+
 
 ## 4. Grid Origin & Coordinate System  
 
@@ -76,7 +76,7 @@ Alternatively, you may permanently move the grid origin to the centre if the ent
 
 > **Best practice:** Keep the **draw‑file origin** (grid origin) at the bottom‑left for final data export, but use temporary reference points for layout symmetry. [Verified]
 
----
+
 
 ## 5. Practical Workflow Summary  
 
@@ -100,7 +100,7 @@ flowchart TD
 
 *The flowchart captures the decision points for creating a board outline, from shape selection to clearance verification and final origin placement.* [Verified]
 
----
+
 
 ## 6. Recommendations & Best Practices  
 

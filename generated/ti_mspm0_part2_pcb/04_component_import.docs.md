@@ -1,4 +1,4 @@
-# 04 Component Import  
+# Component Import  
 
 ## Overview  
 
@@ -6,7 +6,7 @@ Transferring the schematic netlist and associated footprints onto the PCB canvas
 
 > **Key outcome:** All schematic symbols appear on the PCB with their correct 2‑D footprints **and** any attached 3‑D models.  
 
----
+
 
 ## 1. Importing the Schematic Netlist  
 
@@ -24,7 +24,7 @@ When the schematic library was built (e.g., in KiCad’s *Keycad*), each symbol 
 
 > **Inference** – Consistent mapping is essential for downstream mechanical integration.  
 
----
+
 
 ## 2. Initial Component Placement  
 
@@ -45,7 +45,7 @@ When the schematic library was built (e.g., in KiCad’s *Keycad*), each symbol 
 
 > **Inference** – The transcript emphasizes using 3‑D view for these checks; the table expands on typical checks an engineer would perform.  
 
----
+
 
 ## 3. Defining the Board Outline  
 
@@ -57,7 +57,7 @@ After a provisional placement, the board outline is drawn to enclose all compone
 
 > **Speculation** – The exact margin values are not given in the transcript but follow common practice.  
 
----
+
 
 ## 4. 3‑D Model Integration  
 
@@ -77,7 +77,7 @@ After a provisional placement, the board outline is drawn to enclose all compone
 
 > **Verified** – The transcript states “I never use a part which doesn't have a 3‑D model in place.”  
 
----
+
 
 ## 5. Design Verification Using the 3‑D Viewer  
 
@@ -108,7 +108,7 @@ flowchart TD
 
 > **Speculation** – While not mentioned, DRC/ERC is a universally recommended step after layout adjustments.  
 
----
+
 
 ## 6. Best‑Practice Checklist for Component Import  
 
@@ -123,7 +123,7 @@ flowchart TD
 
 > **Inference** – The checklist synthesises the documented advice with standard PCB engineering workflow.  
 
----
+
 
 ## 7. Summary  
 

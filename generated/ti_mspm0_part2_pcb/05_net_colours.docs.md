@@ -14,7 +14,7 @@ These defaults provide a quick visual distinction between the two copper sides b
 
 > **Key principle:** Assign meaningful colours to nets **once** in the schematic and propagate them to the PCB layout. This creates a single source of truth for net identification across the entire design flow. [Verified]
 
----
+
 
 ## 2. Benefits of Consistent Net Colouring  
 
@@ -25,7 +25,7 @@ These defaults provide a quick visual distinction between the two copper sides b
 | **Error prevention** | Colour‑coded nets make it easier to spot accidental cross‑overs between unrelated nets, especially in dense, multi‑layer designs. |
 | **Facilitates design reviews** | Reviewers can verify that controlled‑impedance nets have the correct width/spacing simply by checking their colour group. |
 
----
+
 
 ## 3. Importing Net Colours from the Schematic  
 
@@ -38,7 +38,7 @@ Most ECAD suites provide a **“Import colours from schematic”** command (usua
 
 > This step eliminates the need to manually re‑assign colours in the PCB editor, guaranteeing colour consistency throughout the project. [Verified]
 
----
+
 
 ## 4. Net Classes and Associated Design Rules  
 
@@ -55,7 +55,7 @@ When a net is assigned to a class, the class’s default parameters are automati
 
 > **Best practice:** Create a dedicated net class for every high‑speed or high‑current domain before beginning routing. [Inference]
 
----
+
 
 ## 5. Appearance Settings – From Rat’s Nest to Full Net Display  
 
@@ -70,7 +70,7 @@ Switching to **All objects** provides a “colour‑rich” view that many engin
 
 > The change is performed by opening **Appearance → Nets → Net Display Options** and selecting **All**. [Verified]
 
----
+
 
 ## 6. Practical Workflow for Net Colour Management  
 
@@ -89,7 +89,7 @@ flowchart TD
 
 *The flowchart illustrates the recommended sequence for establishing a colour‑coded net environment and integrating it with design‑rule enforcement.*  
 
----
+
 
 ## 7. Best Practices & Recommendations  
 
@@ -103,7 +103,7 @@ flowchart TD
 
 > Following these guidelines yields a layout that is both **visually intuitive** and **electrically robust**, reducing iteration cycles and improving overall design quality. [Inference]
 
----
+
 
 ## 8. Summary  
 

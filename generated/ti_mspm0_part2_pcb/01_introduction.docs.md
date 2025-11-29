@@ -1,14 +1,14 @@
 # Introduction  
 
-This chapter provides an overview of the design intent, key functional blocks, and the primary PCB‑related decisions that shape the **Keycat 9 demo board**. The board is built around a Texas Instruments **MSPM0** low‑power microcontroller and includes USB‑UART conversion, a USB‑C power and data connector, and an optional I²C accelerometer. The focus of this section is on the PCB layout strategy, layer‑count trade‑offs, and the manufacturing workflow that will be used to obtain a fabricated and assembled board from **JLCPCB**.  
+*This chapter provides an overview of the design intent, key functional blocks, and the primary PCB‑related decisions that shape the **Keycat 9 demo board**. The board is built around a Texas Instruments **MSPM0** low‑power microcontroller and includes USB‑UART conversion, a USB‑C power and data connector, and an optional I²C accelerometer. The focus of this section is on the PCB layout strategy, layer‑count trade‑offs, and the manufacturing workflow that will be used to obtain a fabricated and assembled board from **JLCPCB**.* 
 
----  
+ 
 
 ## 1. Scope of the Design  
 
 The project is deliberately kept simple to illustrate the end‑to‑end flow from schematic capture to board ordering. All schematic details are covered in the preceding video (part 1); this documentation concentrates on the **layout, DFM/DFA considerations, and ordering process**. The board is intended as a **reference design** that can be easily adapted—components such as the header on the right‑hand side may be swapped for an I²C accelerometer or any other peripheral required by the final application.  
 
----  
+ 
 
 ## 2. Core Components and Functional Blocks  
 
@@ -22,7 +22,7 @@ The project is deliberately kept simple to illustrate the end‑to‑end flow fr
 
 The functional partitioning is deliberately linear: power enters via the USB‑C connector, is filtered and distributed to the MCU and peripheral circuits, while the USB‑UART bridge provides a bidirectional data path to the host PC.  
 
----  
+ 
 
 ## 3. Layer Count Selection and Stackup Considerations  
 
@@ -39,7 +39,7 @@ If a designer wishes to explore a four‑layer board, the typical stackup would 
 3. **Inner Plane 2 – Power** – stable VCC distribution, decoupling.  
 4. **Bottom Signal** – additional routing, optional ground fill.  
 
----  
+ 
 
 ## 4. Layout Strategies for Power, USB, and Sensors  
 
@@ -65,7 +65,7 @@ If a designer wishes to explore a four‑layer board, the typical stackup would 
 - Keep the **MCU centrally located** to minimize trace lengths to all peripherals.  
 - Reserve a **clear area** for the programming header to avoid accidental solder bridges during assembly.  
 
----  
+ 
 
 ## 5. Design for Manufacturability (DFM) and Design for Assembly (DFA)  
 
@@ -78,7 +78,7 @@ If a designer wishes to explore a four‑layer board, the typical stackup would 
 | **Panelization** | When ordering from JLCPCB, request **standard panelization** (e.g., 2 × 2 array) to lower per‑board cost. | Economical for small‑batch production. |
 | **Assembly Options** | Enable **SMT assembly** for all components; for the optional accelerometer, provide a **pick‑and‑place file** if the part is not stocked by the fab house. | Guarantees consistent solder quality and reduces manual labor. |
 
----  
+ 
 
 ## 6. Fabrication and Assembly with JLCPCB  
 
@@ -90,7 +90,7 @@ The board will be fabricated and assembled by **JLCPCB**, a widely used low‑co
 - **Order Parameters** – Select **2‑layer, FR‑4, 1.6 mm thickness** (standard) and request **lead‑free solder mask**.  
 - **Turn‑around Time** – Typical prototype turnaround is **3–5 business days** for fabrication and **5–7 days** for assembly, depending on component availability.  
 
----  
+ 
 
 ## 7. Development Flow Overview  
 
@@ -110,7 +110,7 @@ flowchart TD
     J --> K[Iterate if Needed]
 ```
 
----  
+ 
 
 ## 8. Summary  
 

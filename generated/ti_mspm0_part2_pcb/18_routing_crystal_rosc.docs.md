@@ -4,7 +4,6 @@
 
 The crystal oscillator and the internal RC‑oscillator (ROSC) form the timing core of most micro‑controller designs. Because the crystal network is highly sensitive to stray capacitance, impedance discontinuities, and electromagnetic interference, its layout must be treated as a **critical signal path**. The guidelines below capture a proven workflow for routing these structures while maintaining manufacturability, signal integrity, and mechanical robustness.
 
----
 
 ## 2. Trace‑Width Policy  
 
@@ -18,7 +17,6 @@ A single, uniform trace width is preferred for most signal routing to simplify *
 
 When a controlled‑impedance requirement arises, the designer should recalculate the width based on the dielectric thickness and copper weight, but for the crystal network a standard width is usually sufficient because the frequencies are modest (typically 4 – 32 MHz).
 
----
 
 ## 3. Pad Entry Geometry  
 
@@ -36,7 +34,6 @@ Teardrops blend the trace into the pad, further mitigating stress concentrations
 * **When to add:** Once the net topology is finalised and DRC passes.  
 * **Effect:** Enhances mechanical robustness and eases solder flow. [Inference]
 
----
 
 ## 4. Routing the Crystal Network  
 
@@ -64,7 +61,6 @@ Even with autorouting assistance, manual adjustments are often required:
 
 These operations help maintain the required **creepage and clearance** distances dictated by the board’s voltage rating.
 
----
 
 ## 5. Guarding Sensitive Sections  
 
@@ -83,8 +79,6 @@ Placing a fence of grounded vias around the crystal area can act as a **shield**
 
 The guard does not replace proper layout separation but serves as an additional EMI mitigation layer and a visual reminder during routing. [Verified]
 
----
-
 ## 6. Power and Ground Trace Sizing  
 
 Low‑inductance connections are crucial for decoupling capacitors that feed the micro‑controller core.  
@@ -93,8 +87,6 @@ Low‑inductance connections are crucial for decoupling capacitors that feed the
 * **Power rails (VDD, VEF):** Use the same wide‑trace strategy to minimise voltage droop during transient current spikes.  
 
 Wider traces reduce the **loop area** formed by the signal and its return, thereby lowering both inductance and susceptibility to radiated interference. [Verified]
-
----
 
 ## 7. Recommended Layout Workflow  
 
@@ -118,8 +110,6 @@ flowchart TD
 ```
 
 *The flow emphasizes early decisions (trace width, component placement) that cascade into later DFM refinements.* [Inference]
-
----
 
 ## 8. Key Takeaways  
 
