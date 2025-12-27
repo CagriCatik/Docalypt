@@ -40,8 +40,7 @@ def _resolve_markdown_inputs(path: Path) -> list[Path]:
 @click.command()
 @click.argument("input", type=click.Path(exists=True, path_type=Path))
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
-@click.option("--system-prompt-file", type=click.Path(path_type=Path), help="Path to a custom system prompt file.")
-@click.option("--system-prompt", type=str, help="Inline custom system prompt text.")
+@click.option("--system-prompt", type=str, help="Custom system prompt text.")
 @click.option(
     "--system-prompt-allow-empty",
     is_flag=True,
@@ -50,7 +49,6 @@ def _resolve_markdown_inputs(path: Path) -> list[Path]:
 def cli(
     input: Path,
     verbose: bool,
-    system_prompt_file: Path | None,
     system_prompt: str | None,
     system_prompt_allow_empty: bool,
 ) -> None:
@@ -66,20 +64,14 @@ def cli(
         logger.error(str(exc))
         sys.exit(1)
 
-    if system_prompt_file and not system_prompt_file.exists():
-        logger.error("System prompt file does not exist: %s", system_prompt_file)
-        sys.exit(1)
-
     settings = settings_from_env()
     settings.system_prompt_text = system_prompt
-    settings.system_prompt_file = str(system_prompt_file) if system_prompt_file else None
+    settings.system_prompt_file = None
     settings.system_prompt_allow_empty = system_prompt_allow_empty
 
     source_description = "default wrapper"
     if system_prompt is not None and (system_prompt.strip() or system_prompt_allow_empty):
         source_description = "inline override"
-    elif system_prompt_file:
-        source_description = f"file: {system_prompt_file}"
 
     final_system_prompt = resolve_system_prompt(settings)
     logger.info(

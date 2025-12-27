@@ -218,17 +218,16 @@ class MainWindow(QMainWindow):
 
         prompt_tab = QWidget()
         prompt_layout = QVBoxLayout(prompt_tab)
-        prompt_layout.addWidget(QLabel("System prompt (optional override)"))
+        prompt_layout.addWidget(QLabel("System prompt (single inline override)"))
         self.system_prompt_edit = QTextEdit()
         self.system_prompt_edit.setAcceptRichText(False)
+        self.system_prompt_edit.setPlaceholderText(
+            "Leave blank to use the default safety wrapper. Add optional instructions here."
+        )
         prompt_layout.addWidget(self.system_prompt_edit, stretch=2)
-        system_prompt_buttons = QHBoxLayout()
-        self.load_system_prompt_btn = QPushButton("Load from file")
-        self.reset_system_prompt_btn = QPushButton("Reset to default")
-        system_prompt_buttons.addWidget(self.load_system_prompt_btn)
-        system_prompt_buttons.addWidget(self.reset_system_prompt_btn)
-        prompt_layout.addLayout(system_prompt_buttons)
-        prompt_layout.addWidget(QLabel("Effective system prompt: wrapper + (custom override if present)"))
+        self.reset_system_prompt_btn = QPushButton("Clear system prompt override")
+        prompt_layout.addWidget(self.reset_system_prompt_btn, alignment=Qt.AlignRight)
+        prompt_layout.addWidget(QLabel("Effective system prompt: wrapper + inline override (if provided)"))
 
         prompt_layout.addSpacing(8)
         self.prompt_edit = QTextEdit()
@@ -346,7 +345,6 @@ class MainWindow(QMainWindow):
         self.refresh_models_btn.clicked.connect(self._refresh_models)
         self.reset_prompt_btn.clicked.connect(self._reset_prompt)
         self.reset_system_prompt_btn.clicked.connect(self._reset_system_prompt)
-        self.load_system_prompt_btn.clicked.connect(self._load_system_prompt_from_file)
 
     # Drag & drop --------------------------------------------------------
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
@@ -440,27 +438,6 @@ class MainWindow(QMainWindow):
     def _reset_system_prompt(self) -> None:
         self.system_prompt_edit.clear()
         self.logger.info("System prompt override cleared (wrapper + default apply)")
-
-    def _load_system_prompt_from_file(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select system prompt",
-            str(Path.cwd()),
-            "Text or Markdown files (*.txt *.md);;All files (*)",
-        )
-        if not path:
-            return
-        try:
-            content = Path(path).read_text(encoding="utf-8", errors="replace")
-        except OSError as exc:  # pragma: no cover - GUI file error
-            QMessageBox.warning(self, "Unable to read file", str(exc))
-            return
-        self.system_prompt_edit.setPlainText(content)
-        self.logger.info(
-            "Loaded system prompt override from %s (%d characters)",
-            path,
-            len(content),
-        )
 
     def _on_provider_changed(self) -> None:
         self._apply_provider_fields()
@@ -604,7 +581,6 @@ class MainWindow(QMainWindow):
             self.select_all_btn,
             self.system_prompt_edit,
             self.reset_system_prompt_btn,
-            self.load_system_prompt_btn,
             self.prompt_edit,
             self.reset_prompt_btn,
             self.ollama_tabs,
