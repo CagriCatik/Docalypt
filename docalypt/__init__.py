@@ -1,7 +1,6 @@
 """Docalypt application package."""
 
 from .config import AppConfig, load_config
-from .splitting import TranscriptSplitter
 from .documentation import (
     DOCUMENTATION_SUBDIR,
     LLMSettings,
@@ -19,7 +18,6 @@ __all__ = [
     "DocumentGenerationResult",
     "LLMSettings",
     "OllamaSettings",
-    "TranscriptSplitter",
     "collect_chapter_files",
     "generate_documentation",
     "load_config",

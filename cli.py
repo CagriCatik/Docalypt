@@ -8,7 +8,6 @@ from pathlib import Path
 
 import click
 
-from docalypt import TranscriptSplitter
 from docalypt.documentation import (
     DocumentGenerationRequest,
     collect_chapter_files,
@@ -25,14 +24,22 @@ logging.basicConfig(
 logger = logging.getLogger("docalypt.cli")
 
 
+def _resolve_markdown_inputs(path: Path) -> list[Path]:
+    if path.is_file():
+        if path.suffix.lower() != ".md":
+            raise FileNotFoundError("Input must be a Markdown file")
+        return [path]
+    if path.is_dir():
+        chapters = collect_chapter_files(path)
+        if chapters:
+            return chapters
+        raise FileNotFoundError(f"No Markdown files found in {path}")
+    raise FileNotFoundError(f"Input path does not exist: {path}")
+
+
 @click.command()
 @click.argument("input", type=click.Path(exists=True, path_type=Path))
-@click.option("--output-dir", "-o", type=click.Path(path_type=Path), help="Output directory")
-@click.option("--marker", "-m", help="Custom regex for split markers")
-@click.option("--html", "export_html", is_flag=True, help="Also export consolidated HTML")
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
-@click.option("--generate-docs", is_flag=True, help="Generate documentation for chapters after splitting.")
-@click.option("--docs-only", is_flag=True, help="Skip splitting and only generate documentation for an existing chapters directory.")
 @click.option("--system-prompt-file", type=click.Path(path_type=Path), help="Path to a custom system prompt file.")
 @click.option("--system-prompt", type=str, help="Inline custom system prompt text.")
 @click.option(
@@ -42,66 +49,25 @@ logger = logging.getLogger("docalypt.cli")
 )
 def cli(
     input: Path,
-    output_dir: Path | None,
-    marker: str | None,
-    export_html: bool,
     verbose: bool,
-    generate_docs: bool,
-    docs_only: bool,
     system_prompt_file: Path | None,
     system_prompt: str | None,
     system_prompt_allow_empty: bool,
 ) -> None:
-    """Split a Markdown transcript into chapter files and optionally generate documentation."""
+    """Generate documentation directly from Markdown files."""
 
     load_env()
     if verbose:
         logger.setLevel(logging.DEBUG)
 
-    chapters_dir: Path | None = None
-    if docs_only:
-        generate_docs = True
-        if not input.is_dir():
-            logger.error("--docs-only expects INPUT to be a directory of chapter files.")
-            sys.exit(1)
-        chapters_dir = input
-
-    if not docs_only:
-        logger.info("Input: %s", input)
-        splitter = TranscriptSplitter(
-            input_path=input,
-            output_dir=output_dir,
-            marker_regex=marker,
-        )
-
-        splitter.post_split_hooks = [
-            lambda path: logger.info("Created %s", path.name)
-        ]
-
-        try:
-            count = splitter.split(export_html=export_html)
-            chapters_dir = splitter.output_dir
-            logger.info("Done! %d chapters generated.", count)
-            if export_html:
-                logger.info("HTML index created.")
-        except Exception as exc:
-            logger.error("Error: %s", exc)
-            sys.exit(1)
-
-    if not generate_docs:
-        return
+    try:
+        chapters = _resolve_markdown_inputs(input)
+    except FileNotFoundError as exc:
+        logger.error(str(exc))
+        sys.exit(1)
 
     if system_prompt_file and not system_prompt_file.exists():
         logger.error("System prompt file does not exist: %s", system_prompt_file)
-        sys.exit(1)
-
-    if not chapters_dir:
-        logger.error("No chapter directory available for documentation.")
-        sys.exit(1)
-
-    chapters = collect_chapter_files(chapters_dir)
-    if not chapters:
-        logger.error("No chapters found in %s", chapters_dir)
         sys.exit(1)
 
     settings = settings_from_env()
@@ -128,7 +94,7 @@ def cli(
         prompt_template=PROMPT_TEMPLATE,
     )
     logger.info(
-        "Generating documentation with %s (%s) for %d chapters…",
+        "Generating documentation with %s (%s) for %d Markdown file(s)…",
         settings.model or "<model unset>",
         settings.provider,
         len(chapters),

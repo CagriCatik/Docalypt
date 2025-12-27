@@ -38,13 +38,16 @@ class DocumentGenerationResult:
         return not self.failures
 
 
-def collect_chapter_files(output_dir: Path) -> list[Path]:
-    """Return a sorted list of chapter files ready for documentation."""
+def collect_chapter_files(path: Path) -> list[Path]:
+    """Return a sorted list of Markdown files ready for documentation."""
+
+    if path.is_file():
+        return [path]
 
     files = [
-        path
-        for path in sorted(output_dir.glob("*.md"))
-        if not path.name.endswith(".docs.md")
+        candidate
+        for candidate in sorted(path.glob("*.md"))
+        if not candidate.name.endswith(".docs.md")
     ]
     return files
 

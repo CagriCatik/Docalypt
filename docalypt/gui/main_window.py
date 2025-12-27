@@ -8,7 +8,7 @@ from typing import Optional
 
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QDesktopServices, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -24,7 +24,6 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QMainWindow,
     QPushButton,
-    QProgressBar,
     QTabWidget,
     QSpinBox,
     QTextEdit,
@@ -49,8 +48,7 @@ from ..llm import (
     PROMPT_TEMPLATE,
     settings_from_env,
 )
-from ..splitting import TranscriptSplitter
-from .common import DocumentationWorker, ModelListWorker, QtLogHandler, SplitWorker
+from .common import DocumentationWorker, ModelListWorker, QtLogHandler
 
 DEFAULT_MODEL = "llama3"
 DOCS_SUBDIR = DOCUMENTATION_SUBDIR
@@ -78,10 +76,7 @@ class MainWindow(QMainWindow):
         self.logger.setLevel(logging.INFO)
 
         self._default_llm_settings = settings_from_env()
-        self._input_path: Optional[Path] = None
-        self._output_dir: Path = Path.cwd() / "chapters"
-        self._split_thread: Optional[QThread] = None
-        self._split_worker: Optional[SplitWorker] = None
+        self._selected_markdown: list[Path] = []
         self._doc_thread: Optional[QThread] = None
         self._doc_worker: Optional[DocumentationWorker] = None
         self._model_thread: Optional[QThread] = None
@@ -103,26 +98,18 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(central)
 
         toolbar = QHBoxLayout()
-        self.open_btn = QPushButton("📂 Open Markdown…")
-        self.output_btn = QPushButton("📁 Output Folder…")
-        self.split_btn = QPushButton("🚀 Split Transcript")
-        self.open_folder_btn = QPushButton("📂 Reveal Output")
+        self.open_btn = QPushButton("📂 Add Markdown Files…")
+        self.output_btn = QPushButton("📁 Load Folder…")
         self.clear_log_btn = QPushButton("🧹 Clear Log")
         self.save_log_btn = QPushButton("💾 Save Log…")
         for button in (
             self.open_btn,
             self.output_btn,
-            self.split_btn,
-            self.open_folder_btn,
             self.clear_log_btn,
             self.save_log_btn,
         ):
             toolbar.addWidget(button)
         layout.addLayout(toolbar)
-
-        self.progress = QProgressBar()
-        self.progress.hide()
-        layout.addWidget(self.progress)
 
         self.log_area = QTextEdit(readOnly=True)
         layout.addWidget(self.log_area, stretch=1)
@@ -346,10 +333,8 @@ class MainWindow(QMainWindow):
         return provider.capitalize()
 
     def _connect_signals(self) -> None:
-        self.open_btn.clicked.connect(self._open_file)
-        self.output_btn.clicked.connect(self._select_output)
-        self.split_btn.clicked.connect(self._start_split)
-        self.open_folder_btn.clicked.connect(self._reveal_output)
+        self.open_btn.clicked.connect(self._load_markdown_files)
+        self.output_btn.clicked.connect(self._select_markdown_folder)
         self.clear_log_btn.clicked.connect(self.log_area.clear)
         self.save_log_btn.clicked.connect(self._save_log)
         self.enable_ollama.stateChanged.connect(self._update_doc_controls)
@@ -373,87 +358,47 @@ class MainWindow(QMainWindow):
         if not urls:
             return
         path = Path(urls[0].toLocalFile())
-        if path.suffix.lower() == ".md":
-            self._load_markdown(path)
+        if path.is_file() and path.suffix.lower() == ".md":
+            self._load_markdown_list([path])
+        elif path.is_dir():
+            self._load_markdown_folder(path)
 
     # Actions ------------------------------------------------------------
-    def _open_file(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(
+    def _load_markdown_files(self) -> None:
+        paths, _ = QFileDialog.getOpenFileNames(
             self,
-            "Select transcript",
+            "Select Markdown files",
             str(Path.cwd()),
             "Markdown files (*.md)",
         )
-        if path:
-            self._load_markdown(Path(path))
+        if not paths:
+            return
+        selected = [Path(p) for p in paths]
+        self._load_markdown_list(selected)
 
-    def _load_markdown(self, path: Path) -> None:
-        self._input_path = path
-        self.logger.info("Loaded input: %s", path)
-
-    def _select_output(self) -> None:
+    def _select_markdown_folder(self) -> None:
         directory = QFileDialog.getExistingDirectory(
             self,
-            "Select output directory",
-            str(self._output_dir),
+            "Select folder containing Markdown files",
+            str(Path.cwd()),
         )
         if directory:
-            self._output_dir = Path(directory)
-            self.logger.info("Output directory set to %s", directory)
-            self._refresh_chapter_list()
+            self._load_markdown_folder(Path(directory))
 
-    def _start_split(self) -> None:
-        if not self._input_path:
-            QMessageBox.warning(self, "Missing input", "Select a transcript to split first.")
+    def _load_markdown_folder(self, folder: Path) -> None:
+        chapters = collect_chapter_files(folder)
+        if not chapters:
+            QMessageBox.information(self, "No Markdown files", "No Markdown files found in that folder.")
             return
-        self.logger.info("Splitting transcript…")
-        self.split_btn.setEnabled(False)
-        self.progress.setValue(0)
-        self.progress.show()
+        self.logger.info("Loaded %d Markdown files from %s", len(chapters), folder)
+        self._load_markdown_list(chapters)
 
-        if self._split_thread and self._split_thread.isRunning():
-            self.logger.warning("A split operation is already running")
-            return
-
-        splitter = TranscriptSplitter(self._input_path, self._output_dir)
-        thread = QThread(self)
-        worker = SplitWorker(splitter)
-        worker.moveToThread(thread)
-
-        thread.started.connect(worker.run)
-        worker.progress.connect(self.progress.setValue)
-        worker.finished.connect(self._on_split_finished)
-        worker.error.connect(self._on_split_error)
-        worker.finished.connect(thread.quit)
-        worker.error.connect(thread.quit)
-        thread.finished.connect(self._cleanup_split_thread)
-
-        self._split_thread = thread
-        self._split_worker = worker
-        thread.start()
-
-    def _on_split_finished(self, count: int) -> None:
-        self.logger.info("Split complete: %d chapters", count)
-        self.progress.hide()
-        self.split_btn.setEnabled(True)
+    def _load_markdown_list(self, paths: list[Path]) -> None:
+        unique = {path.resolve() for path in paths if path.exists() and path.suffix.lower() == ".md"}
+        self._selected_markdown = sorted(unique)
+        if self._selected_markdown:
+            self.logger.info("Ready to generate documentation for %d Markdown file(s)", len(self._selected_markdown))
         self._refresh_chapter_list()
-
-    def _on_split_error(self, message: str) -> None:
-        self.logger.error("Split failed: %s", message)
-        self.progress.hide()
-        self.split_btn.setEnabled(True)
-
-    def _cleanup_split_thread(self) -> None:
-        if self._split_worker:
-            self._split_worker.deleteLater()
-            self._split_worker = None
-        if self._split_thread:
-            self._split_thread.deleteLater()
-            self._split_thread = None
-        self._update_doc_controls()
-
-    def _reveal_output(self) -> None:
-        QDesktopServices.openUrl(self._output_dir.as_uri())
 
     def _save_log(self) -> None:
         path, _ = QFileDialog.getSaveFileName(
@@ -469,10 +414,7 @@ class MainWindow(QMainWindow):
     # Documentation ------------------------------------------------------
     def _refresh_chapter_list(self) -> None:
         self.chapter_list.clear()
-        if not self._output_dir.exists():
-            self._update_doc_controls()
-            return
-        for chapter in collect_chapter_files(self._output_dir):
+        for chapter in self._selected_markdown:
             item = QListWidgetItem(chapter.name)
             item.setData(Qt.UserRole, chapter)
             self.chapter_list.addItem(item)
@@ -704,7 +646,7 @@ class MainWindow(QMainWindow):
             return
         chapters = self._selected_chapters()
         if not chapters:
-            self.logger.warning("No chapters selected for documentation")
+            self.logger.warning("No Markdown files selected for documentation")
             return
         settings = self._gather_settings()
         prompt_template = self.prompt_edit.toPlainText().strip() or PROMPT_TEMPLATE
@@ -715,7 +657,7 @@ class MainWindow(QMainWindow):
             destination_dirname=DOCS_SUBDIR,
         )
         self.logger.info(
-            "Generating documentation with %s (%s) for %d chapters…",
+            "Generating documentation with %s (%s) for %d Markdown files…",
             settings.model,
             self._provider_label(settings.provider),
             len(chapters),
@@ -756,12 +698,12 @@ class MainWindow(QMainWindow):
             len(result.failures),
         )
         if result.written:
-            target_dir = self._output_dir / DOCS_SUBDIR
-            self.logger.info("Documentation stored in %s", target_dir)
+            destinations = {path.parent for _, path in result.written}
+            for target_dir in sorted(destinations):
+                self.logger.info("Documentation stored in %s", target_dir)
         self.generate_docs_btn.setEnabled(True)
         self.chapter_list.setEnabled(True)
         self.select_all_btn.setEnabled(True)
-        self._refresh_chapter_list()
         self.generation_finished.emit()
 
     def _cleanup_doc_thread(self) -> None:
@@ -775,7 +717,7 @@ class MainWindow(QMainWindow):
 
     # Qt lifecycle -------------------------------------------------------
     def closeEvent(self, event) -> None:  
-        for thread in (self._split_thread, self._doc_thread, self._model_thread):
+        for thread in (self._doc_thread, self._model_thread):
             if thread and thread.isRunning():
                 thread.quit()
                 thread.wait(500)

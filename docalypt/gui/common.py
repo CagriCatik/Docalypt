@@ -15,7 +15,6 @@ from ..documentation import (
     generate_documentation,
 )
 from ..llm import LLMError, LLMSettings, list_models
-from ..splitting import TranscriptSplitter
 
 
 class QtLogHandler(logging.Handler):
@@ -28,28 +27,6 @@ class QtLogHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         message = self.format(record)
         self.widget.append(message)
-
-
-class SplitWorker(QObject):
-    finished = Signal(int)
-    error = Signal(str)
-    progress = Signal(int)
-
-    def __init__(self, splitter: TranscriptSplitter):
-        super().__init__()
-        self.splitter = splitter
-
-    def run(self) -> None:
-        try:
-            def on_progress(current: int, total: int) -> None:
-                if total:
-                    self.progress.emit(int(current / total * 100))
-
-            self.splitter.on_progress = on_progress
-            count = self.splitter.split()
-            self.finished.emit(count)
-        except Exception as exc:  # pragma: no cover - runtime guard
-            self.error.emit(str(exc))
 
 
 class DocumentationWorker(QObject):
@@ -92,5 +69,4 @@ __all__ = [
     "DocumentationWorker",
     "ModelListWorker",
     "QtLogHandler",
-    "SplitWorker",
 ]
