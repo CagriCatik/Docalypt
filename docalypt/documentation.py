@@ -10,6 +10,7 @@ from .llm import (
     LLMError,
     LLMSettings,
     PROMPT_TEMPLATE,
+    resolve_system_prompt,
     build_prompt,
     create_client,
     OllamaSettings,
@@ -54,6 +55,7 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
     client = create_client(request.settings)
     written: list[tuple[Path, Path]] = []
     failures: list[tuple[Path, str]] = []
+    system_prompt = resolve_system_prompt(request.settings)
 
     created_dirs: set[Path] = set()
     for chapter in request.chapters:
@@ -61,7 +63,11 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
             chapter_text = chapter.read_text(encoding="utf-8")
             template = request.prompt_template or PROMPT_TEMPLATE
             prompt = build_prompt(chapter.name, chapter_text, template)
-            markdown = client.generate(prompt)
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ]
+            markdown = client.generate(messages)
             destination_dir = chapter.parent / request.destination_dirname
             if destination_dir not in created_dirs:
                 destination_dir.mkdir(parents=True, exist_ok=True)

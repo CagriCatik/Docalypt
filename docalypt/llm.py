@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -48,6 +49,9 @@ class LLMSettings:
     endpoint: str | None = None
     api_key: str | None = None
     anthropic_version: str | None = None
+    system_prompt_text: str | None = None
+    system_prompt_file: str | None = None
+    system_prompt_allow_empty: bool = False
 
     def normalized_provider(self) -> str:
         provider = (self.provider or "ollama").strip().lower()
@@ -92,22 +96,30 @@ class LLMSettings:
         )
 
 
-PROMPT_TEMPLATE = """You are helping maintain the Docalypt Markdown Transcript Splitter and Documentation suite.
-Create a standalone Markdown documentation section for the chapter below.
+PROMPT_TEMPLATE = """Create Markdown documentation for the provided chapter.
+
+Task:
+- Produce the sections: Overview, Main Topics, Key Details, Terminology, Actionable Items (optional), Open Questions (optional), Sources.
+- Write concise documentation that reflects the supplied sources.
 
 Chapter file name: {chapter_name}
 
-Chapter transcript content:
-```markdown
+SOURCES:
+--- BEGIN SOURCE {chapter_name} ---
 {chapter_content}
-```
-
-Guidelines:
-- Use helpful headings and paragraphs.
-- Summarize the narrative and highlight key ideas.
-- Do not include code snippets or TODO lists.
-- Respond with valid Markdown only.
+--- END SOURCE {chapter_name} ---
 """
+
+
+REQUIRED_SYSTEM_WRAPPER = """You are a documentation generator.
+
+Non-negotiable rules:
+
+* Use ONLY the provided SOURCES. Do not use external knowledge.
+* Do not invent facts. If something is missing, write: Not provided in sources.
+* Do not rely on timestamps or timecodes. Do not structure content around timestamps.
+* Produce Markdown with sections: Overview, Main Topics, Key Details, Terminology, Actionable Items (optional), Open Questions (optional), Sources.
+* In Sources, list the filenames you were given."""
 
 
 def build_prompt(
@@ -125,22 +137,66 @@ def build_prompt(
     )
 
 
+def resolve_system_prompt(config: LLMSettings) -> str:
+    """Resolve the effective system prompt, always prepending the required wrapper."""
+
+    inline_prompt = None
+    if config.system_prompt_text is not None:
+        if config.system_prompt_text.strip() or config.system_prompt_allow_empty:
+            inline_prompt = config.system_prompt_text
+
+    file_prompt = None
+    if inline_prompt is None and config.system_prompt_file:
+        path = Path(config.system_prompt_file).expanduser()
+        if path.exists():
+            try:
+                file_prompt = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                file_prompt = ""
+
+    user_prompt = inline_prompt if inline_prompt is not None else file_prompt
+    if user_prompt is None:
+        user_prompt = ""
+
+    suffix = f"\n\n{user_prompt}" if (user_prompt.strip() or config.system_prompt_allow_empty) else ""
+    return f"{REQUIRED_SYSTEM_WRAPPER}{suffix}"
+
+
+ChatMessage = Dict[str, str]
+
+
+def _split_system_from_messages(messages: Sequence[ChatMessage]) -> tuple[str | None, list[ChatMessage]]:
+    """Extract a single system prompt for providers that expect a top-level field."""
+
+    system_prompt: str | None = None
+    converted: list[ChatMessage] = []
+    for message in messages:
+        role = message.get("role") if isinstance(message, dict) else None
+        content = message.get("content") if isinstance(message, dict) else None
+        if role == "system" and system_prompt is None:
+            if isinstance(content, str):
+                system_prompt = content
+            continue
+        converted.append({"role": role or "user", "content": content or ""})
+    return system_prompt, converted
+
+
 class _BaseLLMClient:
     def __init__(self, settings: LLMSettings) -> None:
         self.settings = settings
 
-    def generate(self, prompt: str) -> str:  # pragma: no cover - interface only
+    def generate(self, messages: Sequence[ChatMessage]) -> str:  # pragma: no cover - interface only
         raise NotImplementedError
 
 
 class _OllamaClient(_BaseLLMClient):
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: Sequence[ChatMessage]) -> str:
         model = self.settings.model.strip()
         if not model:
             raise LLMError("Model name must not be empty")
         payload = {
             "model": model,
-            "prompt": prompt,
+            "messages": list(messages),
             "stream": True,
             "options": {
                 "temperature": self.settings.temperature,
@@ -153,7 +209,7 @@ class _OllamaClient(_BaseLLMClient):
             },
         }
         request = Request(
-            url=f"{self.settings.resolved_endpoint().rstrip('/')}/api/generate",
+            url=f"{self.settings.resolved_endpoint().rstrip('/')}/api/chat",
             data=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
@@ -170,9 +226,12 @@ class _OllamaClient(_BaseLLMClient):
                     chunk = json.loads(line)
                     if "error" in chunk:
                         raise LLMError(str(chunk["error"]))
-                    text = chunk.get("response")
-                    if text:
-                        pieces.append(text)
+                    message = chunk.get("message")
+                    content = None
+                    if isinstance(message, dict):
+                        content = message.get("content")
+                    if isinstance(content, str):
+                        pieces.append(content)
                     if chunk.get("done"):
                         break
                 return "".join(pieces).strip()
@@ -183,7 +242,7 @@ class _OllamaClient(_BaseLLMClient):
 
 
 class _OpenAIClient(_BaseLLMClient):
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: Sequence[ChatMessage]) -> str:
         model = self.settings.model.strip()
         if not model:
             raise LLMError("Model name must not be empty")
@@ -198,7 +257,7 @@ class _OpenAIClient(_BaseLLMClient):
             "top_p": self.settings.top_p,
             "presence_penalty": self.settings.presence_penalty,
             "frequency_penalty": self.settings.frequency_penalty,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": list(messages),
         }
         request = Request(
             url=f"{endpoint}/chat/completions",
@@ -239,7 +298,7 @@ class _OpenAIClient(_BaseLLMClient):
 
 
 class _AnthropicClient(_BaseLLMClient):
-    def generate(self, prompt: str) -> str:
+    def generate(self, messages: Sequence[ChatMessage]) -> str:
         model = self.settings.model.strip()
         if not model:
             raise LLMError("Model name must not be empty")
@@ -247,6 +306,7 @@ class _AnthropicClient(_BaseLLMClient):
         if not api_key:
             raise LLMError("Anthropic API key is required for this provider")
         endpoint = self.settings.resolved_endpoint().rstrip("/")
+        system_prompt, anthropic_messages = _split_system_from_messages(messages)
         payload: Dict[str, object] = {
             "model": model,
             "max_tokens": self.settings.max_tokens,
@@ -255,8 +315,10 @@ class _AnthropicClient(_BaseLLMClient):
             "top_k": self.settings.top_k,
             "presence_penalty": self.settings.presence_penalty,
             "frequency_penalty": self.settings.frequency_penalty,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": anthropic_messages,
         }
+        if system_prompt is not None:
+            payload["system"] = system_prompt
         request = Request(
             url=f"{endpoint}/messages",
             data=json.dumps(payload).encode("utf-8"),
@@ -418,14 +480,16 @@ __all__ = [
     "DEFAULT_ANTHROPIC_VERSION",
     "DEFAULT_OLLAMA_ENDPOINT",
     "DEFAULT_OPENAI_ENDPOINT",
+    "ChatMessage",
     "LLMError",
     "LLMSettings",
     "OllamaError",
     "OllamaSettings",
     "PROMPT_TEMPLATE",
+    "REQUIRED_SYSTEM_WRAPPER",
     "build_prompt",
     "create_client",
     "list_models",
+    "resolve_system_prompt",
     "settings_from_env",
 ]
-
