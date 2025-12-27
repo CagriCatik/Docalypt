@@ -87,6 +87,8 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._apply_default_settings()
         self._connect_signals()
+        self._update_prompt_stats()
+        self._log_prompt_activity("Prompt workspace ready")
         self._refresh_chapter_list()
         self._update_doc_controls()
         self._refresh_models()
@@ -217,26 +219,47 @@ class MainWindow(QMainWindow):
         settings_layout.addStretch(1)
 
         prompt_tab = QWidget()
-        prompt_layout = QVBoxLayout(prompt_tab)
-        prompt_layout.addWidget(QLabel("System prompt (single inline override)"))
+        prompt_layout = QHBoxLayout(prompt_tab)
+
+        left_panel = QVBoxLayout()
+        left_panel.addWidget(QLabel("Custom system prompt (inline override)"))
         self.system_prompt_edit = QTextEdit()
         self.system_prompt_edit.setAcceptRichText(False)
         self.system_prompt_edit.setPlaceholderText(
-            "Leave blank to use the default safety wrapper. Add optional instructions here."
+            "Type a custom system prompt. Leave empty to rely on the default safety wrapper."
         )
-        prompt_layout.addWidget(self.system_prompt_edit, stretch=2)
-        self.reset_system_prompt_btn = QPushButton("Clear system prompt override")
-        prompt_layout.addWidget(self.reset_system_prompt_btn, alignment=Qt.AlignRight)
-        prompt_layout.addWidget(QLabel("Effective system prompt: wrapper + inline override (if provided)"))
+        left_panel.addWidget(self.system_prompt_edit, stretch=3)
 
-        prompt_layout.addSpacing(8)
+        prompt_actions = QHBoxLayout()
+        self.reset_system_prompt_btn = QPushButton("Clear")
+        self.copy_system_prompt_btn = QPushButton("Copy")
+        self.paste_system_prompt_btn = QPushButton("Paste")
+        prompt_actions.addWidget(self.reset_system_prompt_btn)
+        prompt_actions.addWidget(self.copy_system_prompt_btn)
+        prompt_actions.addWidget(self.paste_system_prompt_btn)
+        prompt_actions.addStretch(1)
+        left_panel.addLayout(prompt_actions)
+
+        self.prompt_stats_label = QLabel("0 chars • 0 words")
+        left_panel.addWidget(self.prompt_stats_label)
+
+        left_panel.addSpacing(8)
+        left_panel.addWidget(QLabel("Prompt template"))
         self.prompt_edit = QTextEdit()
         self.prompt_edit.setAcceptRichText(False)
         self.prompt_edit.setPlainText(PROMPT_TEMPLATE)
-        prompt_layout.addWidget(QLabel("Prompt template"))
-        prompt_layout.addWidget(self.prompt_edit, stretch=1)
+        left_panel.addWidget(self.prompt_edit, stretch=2)
         self.reset_prompt_btn = QPushButton("Reset to default prompt")
-        prompt_layout.addWidget(self.reset_prompt_btn, alignment=Qt.AlignRight)
+        left_panel.addWidget(self.reset_prompt_btn, alignment=Qt.AlignRight)
+
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(QLabel("Prompt activity"))
+        self.prompt_activity = QTextEdit(readOnly=True)
+        self.prompt_activity.setPlaceholderText("Actions on the prompt will appear here.")
+        right_panel.addWidget(self.prompt_activity, stretch=1)
+
+        prompt_layout.addLayout(left_panel, stretch=2)
+        prompt_layout.addLayout(right_panel, stretch=1)
 
         self.ollama_tabs.addTab(settings_tab, "Model & Parameters")
         self.ollama_tabs.addTab(prompt_tab, "Prompt Ingestion")
@@ -345,6 +368,10 @@ class MainWindow(QMainWindow):
         self.refresh_models_btn.clicked.connect(self._refresh_models)
         self.reset_prompt_btn.clicked.connect(self._reset_prompt)
         self.reset_system_prompt_btn.clicked.connect(self._reset_system_prompt)
+        self.copy_system_prompt_btn.clicked.connect(self._copy_system_prompt)
+        self.paste_system_prompt_btn.clicked.connect(self._paste_system_prompt)
+        self.system_prompt_edit.textChanged.connect(self._update_prompt_stats)
+        self.system_prompt_edit.textChanged.connect(lambda: self._log_prompt_activity("System prompt edited"))
 
     # Drag & drop --------------------------------------------------------
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
@@ -434,10 +461,29 @@ class MainWindow(QMainWindow):
     def _reset_prompt(self) -> None:
         self.prompt_edit.setPlainText(PROMPT_TEMPLATE)
         self.logger.info("Prompt template reset to default")
+        self._log_prompt_activity("Prompt template reset to default")
 
     def _reset_system_prompt(self) -> None:
         self.system_prompt_edit.clear()
         self.logger.info("System prompt override cleared (wrapper + default apply)")
+        self._log_prompt_activity("System prompt cleared")
+
+    def _copy_system_prompt(self) -> None:
+        QApplication.clipboard().setText(self.system_prompt_edit.toPlainText())
+        self._log_prompt_activity("System prompt copied to clipboard")
+
+    def _paste_system_prompt(self) -> None:
+        self.system_prompt_edit.setPlainText(QApplication.clipboard().text())
+        self._log_prompt_activity("System prompt pasted from clipboard")
+
+    def _log_prompt_activity(self, message: str) -> None:
+        self.prompt_activity.append(message)
+
+    def _update_prompt_stats(self) -> None:
+        text = self.system_prompt_edit.toPlainText()
+        chars = len(text)
+        words = len(text.split()) if text.strip() else 0
+        self.prompt_stats_label.setText(f"{chars} chars • {words} words")
 
     def _on_provider_changed(self) -> None:
         self._apply_provider_fields()
@@ -581,6 +627,8 @@ class MainWindow(QMainWindow):
             self.select_all_btn,
             self.system_prompt_edit,
             self.reset_system_prompt_btn,
+            self.copy_system_prompt_btn,
+            self.paste_system_prompt_btn,
             self.prompt_edit,
             self.reset_prompt_btn,
             self.ollama_tabs,
