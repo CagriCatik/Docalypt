@@ -1,0 +1,19 @@
+# Core dependencies
+click
+toml
+
+# Desktop GUI (optional, for legacy support)
+PySide6
+
+# Web Application
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+
+# Testing
+pytest>=7.0.0
+httpx>=0.24.0
+pytest-asyncio>=0.21.0
+
+# Development
+python-dotenv>=1.0.0
