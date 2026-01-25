@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import os
 import re
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Callable, Optional
 
 from .llm import (
     LLMError,
@@ -31,6 +31,7 @@ class DocumentGenerationRequest:
     destination_root: Path | None = None
     source_root: Path | None = None
     standalone: bool = False  # If True, generates a single combined file
+    progress_callback: Optional[Callable[[int, int, str], None]] = None
 
 
 @dataclass(slots=True)
@@ -320,7 +321,14 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
                 combined_text += chapter.read_text(encoding="utf-8")
                 
             template = request.prompt_template or PROMPT_TEMPLATE
+            
+            if request.progress_callback:
+                request.progress_callback(0, 1, "Full Report")
+                
             markdown = _generate_with_quality("Full Report", combined_text, template)
+            
+            if request.progress_callback:
+                request.progress_callback(1, 1, "Full Report")
             
             destination_dir = resolve_output_dir(request.chapters[0])
             destination_dir.mkdir(parents=True, exist_ok=True)
@@ -334,7 +342,11 @@ def generate_documentation(request: DocumentGenerationRequest) -> DocumentGenera
             return DocumentGenerationResult(written=written, failures=failures)
 
     # Individual mode (Default)
-    for chapter in request.chapters:
+    total_files = len(request.chapters)
+    for i, chapter in enumerate(request.chapters):
+        if request.progress_callback:
+            request.progress_callback(i, total_files, chapter.name)
+            
         try:
             chapter_text = chapter.read_text(encoding="utf-8")
             template = request.prompt_template or PROMPT_TEMPLATE

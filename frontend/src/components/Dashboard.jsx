@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Upload, RefreshCw,
     X, Scissors, Layers, Sparkles, Terminal,
@@ -9,11 +9,18 @@ import {
 const Dashboard = ({
     files, activity, onUpload, onGenerate, isGenerating,
     isSplitting, chapters, setChapters, onSplit, lastUploadedFile,
-    onOpenFolder
+    onOpenFolder, systemStats, genProgress
 }) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [mode, setMode] = useState('split');
     const [searchQuery, setSearchQuery] = useState('');
+    const logContainerRef = useRef(null);
+
+    useEffect(() => {
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+        }
+    }, [activity]);
 
     const toggleItem = (path) => {
         setSelectedItems(prev =>
@@ -65,9 +72,9 @@ const Dashboard = ({
     return (
         <div className="flex-1 flex flex-col overflow-hidden bg-doc-bg text-doc-text font-sans">
             <div className="flex-1 overflow-hidden">
-                <div className="grid h-full grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 p-4">
+                <div className="grid h-full grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-4 p-4">
                     <div className="order-1 flex flex-col gap-4 overflow-hidden min-w-0 min-h-0">
-                        <div className="border border-doc-border/60 rounded-xl bg-doc-sidebar/60 p-4 space-y-4 shrink-0 shadow-sm panel-glow animate-rise">
+                        <div className="border border-doc-border/60 rounded-xl bg-doc-sidebar/60 p-3 space-y-3 shrink-0 shadow-sm panel-glow animate-rise">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-[10px] font-bold text-doc-text-dim uppercase tracking-[0.2em]">
                                     <BookOpen className="w-3.5 h-3.5 text-doc-accent" /> Source Intake
@@ -209,28 +216,49 @@ const Dashboard = ({
                                 ))}
                             </div>
 
-                            <div className="p-4 border-t border-doc-border/70 bg-black/20 shrink-0">
+                            <div className="p-4 border-t border-doc-border/70 bg-black/20 shrink-0 relative">
+                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
                                 <button
                                     disabled={selectedItems.length === 0 || isGenerating}
                                     onClick={() => onGenerate(selectedItems, false)}
-                                    className="w-full relative py-3.5 bg-doc-accent hover:brightness-110 disabled:bg-doc-border/50 disabled:text-doc-text-dim text-black/90 rounded-lg flex items-center justify-center gap-3 transition-all active:scale-[0.99] shadow-xl shadow-doc-accent/10 font-bold group"
+                                    className="w-full relative py-4 bg-doc-accent hover:brightness-110 disabled:bg-doc-border/50 disabled:text-doc-text-dim text-black/90 rounded-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-doc-accent/20 font-bold group overflow-hidden disabled:shadow-none"
                                 >
                                     {isGenerating ? (
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <>
+                                            <div
+                                                className="absolute inset-y-0 left-0 bg-white/20 transition-all duration-500 ease-out z-0"
+                                                style={{ width: `${genProgress?.percent || 0}%` }}
+                                            />
+                                            <div className="absolute inset-0 bg-white/5 animate-pulse z-0" />
+                                            <RefreshCw className="w-5 h-5 animate-spin relative z-10" />
+                                            <div className="flex flex-col items-start relative z-10 text-left">
+                                                <span className="tracking-[0.15em] uppercase text-xs font-black">
+                                                    PROCESSING ({genProgress?.current || 0}/{genProgress?.total || 0})
+                                                </span>
+                                                {genProgress?.filename && (
+                                                    <span className="text-[9px] font-mono opacity-70 truncate max-w-[200px]">
+                                                        {genProgress.filename}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </>
                                     ) : (
-                                        <Sparkles className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                                        <>
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12 group-hover:scale-110" />
+                                            <span className="tracking-[0.15em] uppercase text-xs font-black">
+                                                GENERATE DOCS ({selectedItems.length})
+                                            </span>
+                                            <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                        </>
                                     )}
-                                    <span className="tracking-[0.1em] uppercase text-xs">
-                                        {isGenerating ? 'PROCESSING SCHEMA...' : `GENERATE DOCS (${selectedItems.length})`}
-                                    </span>
-                                    {!isGenerating && <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="order-3 flex flex-col gap-4 overflow-hidden">
-                        <div className="flex-1 border border-doc-border/60 rounded-xl flex flex-col overflow-hidden bg-doc-sidebar/60 shadow-sm panel-glow animate-rise">
+                    <div className="order-3 flex flex-col gap-4 overflow-hidden min-h-0">
+                        <div className="flex-1 border border-doc-border/60 rounded-xl flex flex-col overflow-hidden bg-doc-sidebar/60 shadow-sm panel-glow animate-rise min-h-0">
                             <div className="h-12 px-4 border-b border-doc-border/70 flex items-center justify-between bg-black/20 shrink-0">
                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-doc-text-dim tracking-[0.2em]">
                                     <History className="w-3.5 h-3.5 text-doc-accent/60" /> Run Log
@@ -241,7 +269,10 @@ const Dashboard = ({
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar font-mono text-[10px] bg-black/10">
+                            <div
+                                ref={logContainerRef}
+                                className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar font-mono text-[10px] bg-black/10"
+                            >
                                 {activity.length === 0 && (
                                     <div className="h-full flex flex-col items-center justify-center opacity-10 gap-3">
                                         <Terminal className="w-10 h-10" />
@@ -268,12 +299,56 @@ const Dashboard = ({
                             </div>
 
                             <div className="p-4 border-t border-doc-border/70 bg-black/20 space-y-3 shrink-0">
-                                <div className="flex justify-between text-[9px] font-bold text-doc-text-dim">
+                                <div className="flex items-center justify-between text-[9px] font-bold text-doc-text-dim mb-2">
                                     <span className="uppercase tracking-widest">System Pulse</span>
-                                    <span className="text-doc-accent">STABLE</span>
+                                    <span className="text-doc-accent animate-pulse-slow">ONLINE</span>
                                 </div>
-                                <div className="h-1 bg-doc-border rounded-full overflow-hidden">
-                                    <div className="h-full bg-doc-accent w-2/3 shadow-[0_0_8px_rgba(56,200,155,0.5)]" />
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-6 text-[8px] font-mono opacity-60">CPU</span>
+                                        <div className="flex-1 h-1.5 bg-doc-border/50 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-doc-accent shadow-[0_0_8px_rgba(56,200,155,0.4)] transition-all duration-500 ease-out"
+                                                style={{ width: `${systemStats?.cpu || 0}%` }}
+                                            />
+                                        </div>
+                                        <span className="w-8 text-right text-[8px] font-mono text-white/70">{Math.round(systemStats?.cpu || 0)}%</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-6 text-[8px] font-mono opacity-60">RAM</span>
+                                        <div className="flex-1 h-1.5 bg-doc-border/50 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.4)] transition-all duration-500 ease-out"
+                                                style={{ width: `${systemStats?.ram || 0}%` }}
+                                            />
+                                        </div>
+                                        <span className="w-8 text-right text-[8px] font-mono text-white/70">{Math.round(systemStats?.ram || 0)}%</span>
+                                    </div>
+
+                                    {systemStats?.has_gpu && (
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-6 text-[8px] font-mono opacity-60">GPU</span>
+                                            <div className="flex-1 h-1.5 bg-doc-border/50 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.4)] transition-all duration-500 ease-out"
+                                                    style={{ width: `${systemStats?.gpu || 0}%` }}
+                                                />
+                                            </div>
+                                            <span className="w-8 text-right text-[8px] font-mono text-white/70">{Math.round(systemStats?.gpu || 0)}%</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-3 pt-1 border-t border-white/5 mt-1">
+                                        <span className="w-6 text-[8px] font-mono opacity-60">LLM</span>
+                                        <div className="flex-1 flex justify-end">
+                                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-bold transition-colors ${systemStats?.ollama ? 'text-doc-accent bg-doc-accent/10 border border-doc-accent/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'}`}>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${systemStats?.ollama ? 'bg-doc-accent animate-pulse' : 'bg-red-400'}`} />
+                                                {systemStats?.ollama ? 'OLLAMA RUNNING' : 'OLLAMA OFFLINE'}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

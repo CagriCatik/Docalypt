@@ -2,7 +2,11 @@ import os
 import logging
 from typing import List, Optional
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import asyncio
+import psutil
+import subprocess
+import requests
+from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -27,6 +31,92 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("docalypt.server")
 
 app = FastAPI(title="Docalypt API")
+
+# --- System Monitoring ---
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        # Broadcast to all connected clients
+        for connection in list(self.active_connections):
+            try:
+                await connection.send_json(message)
+            except Exception:
+                self.active_connections.remove(connection)
+
+manager = ConnectionManager()
+
+def get_gpu_usage():
+    try:
+        # Simple nvidia-smi check for Windows/Linux
+        result = subprocess.run(
+            ['nvidia-smi', '--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False
+        )
+        if result.returncode == 0:
+            output = result.stdout.decode('utf-8').strip()
+            if output:
+                return float(output.split('\n')[0])
+    except Exception:
+        pass
+    return None
+
+def check_ollama():
+    try:
+        # Ollama usually runs on 11434
+        response = requests.get("http://localhost:11434/", timeout=0.5)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+async def system_monitor_loop():
+    while True:
+        try:
+            cpu = psutil.cpu_percent(interval=None)
+            ram = psutil.virtual_memory().percent
+            gpu = get_gpu_usage()
+            ollama_status = await run_in_threadpool(check_ollama)
+            
+            await manager.broadcast({
+                "type": "system_stats",
+                "data": {
+                    "cpu": cpu,
+                    "ram": ram,
+                    "gpu": gpu if gpu is not None else 0,
+                    "has_gpu": gpu is not None,
+                    "ollama": ollama_status
+                }
+            })
+        except Exception as e:
+            logger.error(f"Monitor error: {e}")
+        
+        await asyncio.sleep(2)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(system_monitor_loop())
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text() # Keep connection alive
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+# --- End System Monitoring ---
 
 # Paths & configuration
 BASE_DIR = Path(__file__).resolve().parent
@@ -368,6 +458,36 @@ async def generate_docs(payload: GenerationPayload):
     
     generated_root = _generated_dir()
 
+    # Create a progress callback that broadcasts to WebSocket
+    def report_progress(current: int, total: int, filename: str):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+            
+        # We need the loop that the server is running on
+        # Since we are inside an async endpoint, asyncio.get_running_loop() works here
+        # BUT this callback is called from a thread, so we can't get the loop from *there* easily
+        # unless we capture it from the parent scope.
+        pass
+
+    # Capture the current event loop for threadsafe execution
+    loop = asyncio.get_running_loop()
+
+    def progress_callback(current: int, total: int, filename: str):
+        asyncio.run_coroutine_threadsafe(
+            manager.broadcast({
+                "type": "generation_progress",
+                "data": {
+                    "current": current,
+                    "total": total,
+                    "filename": filename,
+                    "percent": int((current / total) * 100) if total > 0 else 0
+                }
+            }),
+            loop
+        )
+
     try:
         gen_request = DocumentGenerationRequest(
             chapters=selected_files,
@@ -375,10 +495,23 @@ async def generate_docs(payload: GenerationPayload):
             prompt_template=config.prompt_template or PROMPT_TEMPLATE,
             destination_root=generated_root,
             source_root=transcripts_dir,
-            standalone=req.standalone
+            standalone=req.standalone,
+            progress_callback=progress_callback
         )
         
         result = await run_in_threadpool(generate_documentation, gen_request)
+        
+        # Send completion value (100%)
+        await manager.broadcast({
+            "type": "generation_progress",
+            "data": {
+                "current": len(selected_files),
+                "total": len(selected_files),
+                "filename": "Done",
+                "percent": 100,
+                "done": True
+            }
+        })
         
         if req.standalone:
             successes = [f"Standalone Report -> {result.written[0][1].name}"] if result.written else []

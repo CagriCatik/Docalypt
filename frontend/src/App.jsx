@@ -18,6 +18,44 @@ function App() {
   const [chapters, setChapters] = useState([]);
   const [lastUploadedFile, setLastUploadedFile] = useState(null);
   const [defaults, setDefaults] = useState({ system_prompt: '', prompt_template: '' });
+  const [systemStats, setSystemStats] = useState({ cpu: 0, ram: 0, gpu: 0, has_gpu: false });
+  const [genProgress, setGenProgress] = useState({ current: 0, total: 0, percent: 0, filename: '', active: false });
+
+  // WebSocket connection for System Pulse
+  useEffect(() => {
+    let ws;
+    let retryInterval;
+
+    const connect = () => {
+      const wsUrl = API_BASE.replace('http', 'ws').replace('/api', '') + '/ws';
+      ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === 'system_stats') {
+            setSystemStats(message.data);
+          } else if (message.type === 'generation_progress') {
+            setGenProgress(prev => ({ ...message.data, active: !message.data.done }));
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+
+      ws.onclose = () => {
+        // Retry connection after 5 seconds
+        retryInterval = setTimeout(connect, 5000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (ws) ws.close();
+      if (retryInterval) clearTimeout(retryInterval);
+    };
+  }, []);
 
   const [config, setConfig] = useState({
     provider: 'ollama',
@@ -217,6 +255,7 @@ function App() {
 
   const handleGenerate = async (selectedPaths, standalone = false) => {
     setIsGenerating(true);
+    setGenProgress({ current: 0, total: 0, percent: 0, filename: 'Starting...', active: true });
     try {
       const normalizedPaths = selectedPaths.map(p => p.replace(/^transcripts[/\\]/, ''));
       const response = await fetch(`${API_BASE}/generate`, {
@@ -251,8 +290,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-doc-bg text-doc-text font-sans">
-      <div className="flex min-h-screen w-full flex-col lg:flex-row">
+    <div className="h-screen w-full bg-doc-bg text-doc-text font-sans overflow-hidden">
+      <div className="flex h-full w-full flex-col lg:flex-row overflow-hidden">
         <Sidebar
           config={config}
           setConfig={setConfig}
@@ -274,6 +313,8 @@ function App() {
           onSplit={handleSplit}
           lastUploadedFile={lastUploadedFile}
           onOpenFolder={handleOpenFolder}
+          systemStats={systemStats}
+          genProgress={genProgress}
         />
       </div>
     </div>
