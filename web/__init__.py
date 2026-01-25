@@ -1,1 +1,0 @@
-"""Docalypt Web Application Package."""

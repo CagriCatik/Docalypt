@@ -1,194 +1,148 @@
-<img src="./assets/logo.png" alt="Docalypt Logo" width="200"/>
-
-[![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org/)
-[![UI-PySide6](https://img.shields.io/badge/UI-PySide6-brightgreen)](https://doc.qt.io/qtforpython-6/)
-[![LLM-Ollama](https://img.shields.io/badge/LLM-Ollama-orange)](https://ollama.com/)
-[![Interface](https://img.shields.io/badge/interface-CLI%20%7C%20GUI-informational)](#running-docalypt)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CagriCatik/Docalypt)
-
-Docalypt automates the conversion of long-form Markdown transcripts into clean, timestamped chapter files. It can optionally generate AI-enhanced documentation for each chapter using local Ollama models or hosted LLM providers. Both the GUI and CLI use the same underlying pipeline to ensure consistent behavior across interfaces.
+<p align="center">
+  <img src="assets/logo.png" alt="Docalypt Logo" width="200" />
+</p>
 
 ---
 
-<div style="text-align: center;">
-  <img src="./assets/screenshot.png" alt="Docalypt Screenshot" width="600"/>
-</div>
+<p align="center">
+Docalypt is a utilitarian, high-density workspace designed to transform raw transcripts and markdown archives into structured technical documentation using local AI models (via Ollama) or cloud providers.
+</p>
 
----
+```mermaid
+graph LR
+    Input[Markdown File] --> Split[File Splitter]
+    Split --> Matrix[Selection Matrix]
+    Matrix --> AI[Local AI Model]
+    AI --> Output[Structured Document]
+```
 
-## Key features
+## Core Features
 
-* **Consistent splitting engine**  
-  Produces deterministic chapter boundaries and a stable on-disk structure compatible with earlier versions.
+- **Decoupled Architecture**: Clean separation between a FastAPI backend and a React/Vite frontend.
+- **AI Control**: Fine-tune output with Temperature, Top P, Novelty Penalty, and Frequency Penalty.
+- **File Splitting**: Automatically segment long transcripts into logical chapters based on markdown headings.
+- **Live Action Log**: Real-time feedback and system health monitoring.
 
-* **Responsive PySide6 desktop app**  
-  Drag and drop transcripts, track progress, and generate documentation without blocking the UI.
+## Project Structure
 
-* **Integrated Ollama controls**  
-  Inspect installed models, tune generation parameters, customize prompts, and run documentation jobs.
+The codebase is organized into two primary domains:
 
-* **Multiple LLM providers**  
-  Switch between local Ollama and hosted services (OpenAI, Anthropic) using a simple `.env` configuration.
+### `/backend`
 
-* **Clear output structure**  
-  AI-generated docs are stored under a dedicated `documentation/` subdirectory next to the chapter files.
+The engine responsible for text processing, segment management, and AI orchestration.
 
-* **Single shared codebase**  
-  The GUI and CLI reuse the same configuration, splitting logic, and LLM utilities.
+- **`server.py`**: High-performance FastAPI server.
+- **`docalypt/`**: Core library for chapter splitting and document generation.
+- **`transcripts/`**: Ingested data storage.
+- **`generated/`**: Final output hub.
 
-## Repository structure
+### `/frontend`
+
+- A compact, professional UI built with Tailwind CSS v4 and Lucide-React.
+
+## Installation & Setup
+
+### 1. Requirements
+
+- Python 3.10+
+- Node.js 18+
+- [Ollama](https://ollama.com/) (running locally)
+
+### 2. Backend Setup
 
 ```bash
-├── Docalypt/
-│   ├── documentation.py     # Documentation workflow and prompt logic
-│   ├── gui/
-│   │   ├── common.py        # Shared Qt workers and logging tools
-│   │   └── main_window.py   # PySide6 application
-│   ├── llm.py               # LLM client implementations and templates
-│   └── splitting.py         # Core transcript splitting engine
-├── cli.py                   # CLI entry point
-├── main.py                  # GUI launcher
-└── docs/
-    └── ARCHITECTURE.md
-````
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/CagriCatik/Docalypt.git
-   cd Docalypt
-   ```
-
-2. Create a virtual environment:
-
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate        # Windows: .venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Configure environment variables:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Set the desired LLM provider:
-
-   * `DOCALYPT_LLM_PROVIDER=ollama|openai|anthropic`
-   * Add API keys and endpoints when using hosted providers.
-
-5. Install and run Ollama (if using local models):
-
-   ```bash
-   ollama pull llama3
-   ```
-
-## Example workflow: YouTube transcript to chapters and documentation
-
-### 1. Prepare the transcript
-
-Export a YouTube transcript and save it as a single Markdown file:
-
-```text
-transcripts/
-└── esp32_iot_4_layer_pcb.md
+cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate | Linux/Mac: source venv/bin/activate
+pip install -r requirements.txt
+python server.py
 ```
 
-Guidelines:
+### 2. Configuration (Optional)
 
-* Accepts plain text or Markdown.
-* Timestamps are optional but useful.
-* Keep the entire transcript in one file.
+The backend reads environment variables from `backend/.env`. Key settings:
 
-### 2. Split chapters using the CLI
+- `DOCALYPT_CORS_ORIGINS`: Comma-separated list of allowed origins.
+- `DOCALYPT_TRANSCRIPTS_DIR`: Override the transcripts storage path.
+- `DOCALYPT_GENERATED_DIR`: Override the generated docs output path.
+- `DOCALYPT_PROMPTS_DIR`: Override the prompts template folder.
+
+### 3. Frontend Setup
 
 ```bash
-python cli.py transcripts/esp32_iot_4_layer_pcb.md --output-dir ./demo_chapters
+cd frontend
+npm install
+npm run dev
 ```
 
-Output example:
+The application will be accessible at [http://localhost:5173](http://localhost:5173).
 
-```text
-demo_chapters/
-├── 000_intro.md
-├── 010_schematic_overview.md
-├── 020_layer_stackup.md
-└── 030_routing_strategies.md
+## Usage Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Workspace UI
+    participant B as API Server
+    participant A as AI Provider
+
+    U->>F: Upload Transcript (.md)
+    F->>B: Store File
+    U->>F: Select Logic Template
+    U->>F: Adjust AI Params (Sliders)
+    U->>F: Execute "Split Mode"
+    B-->>F: Return Chapter Map
+    U->>F: Select Segments & Execute
+    F->>B: Process Request
+    B->>A: Generate Content
+    A-->>B: Return Text
+    B-->>F: Update Log Success
 ```
 
-### 3. Generate documentation using the GUI
+## Usage Modes
 
-Start the application:
+### Segment Mode (Split + Select)
+
+Use this when you want the system to break a long transcript into chapter files first, then select specific chapters for generation.
+
+```mermaid
+flowchart LR
+    A[Upload .md Transcript] --> B[Segment Mode]
+    B --> C[Split Transcript into Chapters]
+    C --> D["Select Chapter(s)"]
+    D --> E[Generate Documentation]
+    E --> F[Output to /backend/generated]
+```
+
+### Direct Mode (Batch Upload + Generate)
+
+Use this when you already have multiple clean markdown files and want to process them directly without splitting.
+
+```mermaid
+flowchart LR
+    A[Upload One or More .md Files] --> B[Direct Mode]
+    B --> C["Select File(s)"]
+    C --> D[Generate Documentation]
+    D --> E[Output to /backend/generated]
+```
+
+### Notes
+
+- The **System Prompt** and **Template** can be reset to backend defaults at any time under `backend/prompts`.
+
+## Testing
+
+Run backend unit and integration tests using pytest:
 
 ```bash
-python main.py
+cd backend
+pytest tests/
 ```
 
-In the GUI:
-
-* Load the transcript file.
-* Select the chapter output directory.
-* Run the split operation.
-* Enable LLM generation in the LLM/Ollama tab.
-* Refresh and choose a model.
-* Optionally adjust generation parameters and the prompt template.
-* Select chapters and run documentation generation.
-
-This produces files such as:
-
-```text
-demo_chapters/documentation/
-├── 000_intro.docs.md
-├── 010_schematic_overview.docs.md
-├── 020_layer_stackup.docs.md
-└── 030_routing_strategies.docs.md
-```
-
-Generated documentation is available in [**generated**](./generated/README.md).
-
-## Running Docalypt
-
-### Desktop application
+Run frontend build/lint checks:
 
 ```bash
-python main.py
+cd frontend
+npm run build
+npm run lint
 ```
-
-Key components:
-
-* Model selection and refresh using the Ollama API.
-* Full parameter control: temperature, top-p, max tokens, top-k, penalties.
-* Prompt customization with reset support.
-* Chapter selection with per-chapter documentation output.
-
-Generated files are saved under:
-
-```bash
-<output_dir>/documentation/<chapter>.docs.md
-```
-
-### Command-line interface
-
-```bash
-python cli.py transcript.md --output-dir ./chapters
-```
-
-The CLI uses the same configuration and splitting engine as the GUI.
-
-## Troubleshooting
-
-* Verify that Ollama is running when using local models.
-* If models do not appear, check the log panel for API errors.
-* Long operations run in worker threads, so the GUI remains responsive. Wait for tasks to complete before closing the window.
-
-## Additional documentation
-
-Detailed architecture notes are available in [**docs**](docs/ARCHITECTURE.md)

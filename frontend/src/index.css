@@ -1,0 +1,184 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --color-doc-bg: #0c1114;
+  --color-doc-sidebar: #11181e;
+  --color-doc-border: #1f2a33;
+  --color-doc-accent: #38c89b;
+  --color-doc-text: #e8eef4;
+  --color-doc-text-dim: #9aa6b2;
+  --color-doc-hover: #18212a;
+  --font-sans: "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", "Consolas", monospace;
+}
+
+body {
+  background-color: var(--color-doc-bg);
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(56, 200, 155, 0.16), transparent 45%),
+    radial-gradient(circle at 90% 20%, rgba(107, 140, 165, 0.2), transparent 40%),
+    linear-gradient(180deg, rgba(12, 17, 20, 0.92), rgba(12, 17, 20, 0.98));
+  color: var(--color-doc-text);
+  font-family: var(--font-sans);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-doc-border);
+  border-radius: 2px;
+}
+
+input,
+select,
+textarea {
+  background: rgba(15, 20, 25, 0.9);
+  border: 1px solid var(--color-doc-border);
+  color: var(--color-doc-text);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-doc-accent);
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.btn-primary {
+  background: #2f81f7;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #f0f6fc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.bg-doc-bg {
+  background-color: var(--color-doc-bg);
+}
+
+.bg-doc-sidebar {
+  background-color: var(--color-doc-sidebar);
+}
+
+.border-doc-border {
+  border-color: var(--color-doc-border);
+}
+
+.bg-doc-accent {
+  background-color: var(--color-doc-accent);
+}
+
+.text-doc-text {
+  color: var(--color-doc-text);
+}
+
+.text-doc-text-dim {
+  color: var(--color-doc-text-dim);
+}
+
+.hover-bg-doc-hover:hover {
+  background-color: var(--color-doc-hover);
+}
+
+.text-doc-accent {
+  color: var(--color-doc-accent);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* UI Polish Improvements */
+* {
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-doc-accent);
+  outline-offset: 2px;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(56, 200, 155, 0.18);
+}
+
+.panel-glow {
+  box-shadow: 0 20px 60px rgba(10, 14, 18, 0.35);
+}
+
+.animate-rise {
+  animation: rise-in 0.6s ease both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.border-gradient {
+  position: relative;
+  background: linear-gradient(var(--color-doc-sidebar), var(--color-doc-sidebar)) padding-box,
+    linear-gradient(135deg, var(--color-doc-accent), transparent) border-box;
+  border: 1px solid transparent;
+}

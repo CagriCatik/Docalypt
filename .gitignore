@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+__pycache__
+.pytest_cache
 
 # Virtual environments
 .venv/
@@ -63,6 +65,12 @@ pytest_cache/
 #html/
 #index.html
 
+# Runtime data (created by the app)
+backend/transcripts/
+backend/generated/
+transcripts/
+generated/
+
 # GUI build artifacts (if any)
 *.qmlc
 *.jsc
@@ -71,3 +79,5 @@ pytest_cache/
 # Misc
 *.tmp
 *.temp
+
+.DS_Store
